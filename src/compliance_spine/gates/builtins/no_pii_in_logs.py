@@ -39,7 +39,7 @@ _FIELDS = (
 # Objects that typically *contain* personal data.
 _CONTAINERS = (
     "user", "customer", "member", "account", "profile", "person",
-    "patient", "applicant", "subscriber", "employee", "claimant", "holder",
+    "patient", "applicant", "subscriber", "employee",
 )
 _ALL = _FIELDS + _CONTAINERS
 _ALT = "|".join(sorted(_ALL, key=len, reverse=True))

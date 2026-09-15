@@ -1,0 +1,15 @@
+# Confidentiality denylist for the leak-guard — FORMAT EXAMPLE ONLY.
+#
+# One case-insensitive regex per line; blank lines and lines starting with '#' are ignored.
+# Copy this to `.leakpatterns` (which is git-ignored) and replace the placeholders below with
+# your real customer / domain terms. The real `.leakpatterns` is NEVER committed — that is the
+# whole point: the operative denylist must live outside the committed artifact so this repo
+# cannot be reversed to reveal the domain it protects.
+#
+# In CI, materialise `.leakpatterns` from a repository secret before running the guard
+# (see .github/workflows/compliance-gate.yml).
+#
+# Example placeholders (replace these):
+# \bacmecorp\b
+# \bwidget[- ]?works\b
+# \bproject[- ]?falcon\b

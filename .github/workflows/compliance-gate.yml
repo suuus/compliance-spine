@@ -24,7 +24,11 @@ jobs:
         run: pip install -e ".[dev,zava]"
 
       - name: Confidentiality leak-guard
-        run: python ci/leak_scan.py .
+        env:
+          LEAK_PATTERNS: ${{ secrets.LEAK_PATTERNS }}
+        run: |
+          if [ -n "${LEAK_PATTERNS}" ]; then printf '%s\n' "${LEAK_PATTERNS}" > .leakpatterns; fi
+          python ci/leak_scan.py .
 
       - name: Lint
         run: ruff check .

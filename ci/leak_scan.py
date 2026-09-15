@@ -4,12 +4,13 @@
 The spine is built for a specific customer in a regulated domain, but *nothing* about
 that customer or domain may appear in this repository. This scanner enforces that.
 
-Design constraint: the guard must not itself contain the sensitive terms in plaintext —
-that would be the very leak we are preventing. So the built-in denylist ships as
-**SHA-256 hashes** of forbidden words. The scanner hashes each word it finds and checks
-membership; it never needs the plaintext. For real deployments, an additional *plaintext*
-pattern file can be supplied out-of-band via ``$COMPLIANCE_LEAK_PATTERNS_FILE`` (kept in
-``.gitignore``), so the operative denylist lives outside the committed artifact.
+Design constraint: the guard must not itself fingerprint the domain it protects. An earlier
+version shipped SHA-256 of the forbidden terms — but SHA-256 of short dictionary words is
+trivially brute-forced from a wordlist, so the committed hashes would themselves leak the
+sector. So the built-in denylist ships **empty**, and the operative denylist is supplied
+out-of-band as a plaintext pattern file via ``$COMPLIANCE_LEAK_PATTERNS_FILE`` (defaulting to
+a git-ignored ``.leakpatterns``). The denylist therefore lives entirely outside the committed
+artifact. Callers/tests may still pass an explicit ``hashes`` set to :func:`scan_text`.
 
 Exit code is non-zero if anything matches — wire it into pre-commit and CI as a hard gate.
 """
@@ -24,33 +25,10 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-# SHA-256 of forbidden domain/customer terms (and their morphological variants).
-# Plaintext intentionally absent — see module docstring.
-BUILTIN_HASHES: frozenset[str] = frozenset(
-    {
-        "ac7d227cddb99c2a7fc6783c00a46e91cbc108253574b38719368a15667a3d9e",
-        "0ea7d8b72b0546bfb22597fb562e224789bb3857b376658f57dc892c52626eb3",
-        "750708b8956e0ca04acb740ec7e84e8c238db36c487a04e8498e71dcb90cde08",
-        "64e8937abc6d71cf2d2f0fe05e52c33666883443ae4e8af7924c71198caa1f9d",
-        "cfbbd2ea7d87c01ee41e299c33ae1357602740885696af9032035fbb4ab4ac39",
-        "9475a5970e0d3b96f19fca06c19d9235df6728836503a1d498b0124578aa113d",
-        "a2ade46ab94c5a38b4ccfe8cec780bfa874b07679da6305233eb25901c6ebdbb",
-        "bb04632546c0070fc84ea66f0c71bafd5c4c1e2aec2ee9c660950b9bd3024e2e",
-        "c5f1fbef57e5803841b1a8cc532271469c7441cdc2fef0db92dc0c12bde1aa55",
-        "c61a0a0563bb3bf01151fb143d34b5009f1b75c5683d6c856b20ca5126f1754f",
-        "870dc23d21836b97b58a7753922edc8512764e83c02586f3d8f14c11f760550b",
-        "0aab52b4dbcce29dd7b86753b2ea2e80affd952cd4d2945cb6549a5684789147",
-        "ac9dc1b107be038f29390517684068cdaff0b0efb0cc9a924dd835e9cdbf8d6f",
-        "e2fcb7e7588aff3cb93a40f86bb70e74a4ca95b66fefc206dd18b04ca1e9f43f",
-        "58c66935b76a93c2b1e8e0dd811a7a02f3ef965b6ffd2a7caa079302e0645887",
-        "27bc7eb20add5b3e9f1f2560e9dc51dca2664a4468bded633d99cc3bbb2a0854",
-        "c5e27cb498c5858e9026a862fa524e8238bf1372ca49dc3e8797cc3c0c82eed4",
-        "ff8c85029f98cd0bfa5576a13d6ad62e1a18acf6b6c589c9cad56d00302cc46b",
-        "ec30c219d7c20fb799ea16b1b8df45e4cc45424c7fd08482ec322a068b2a1f3b",
-        "e9ae161e9a33ecf59afe24f94858c2fa16cf39674c0691f66f779a837a0fcf8a",
-        "77ebfe9993f116e089f21a982b4afcb67e3761529a29b52d5c88c65b467514e4",
-    }
-)
+# Intentionally empty: see the module docstring. The real denylist is supplied out-of-band
+# via COMPLIANCE_LEAK_PATTERNS_FILE (git-ignored), so nothing in this file can be reversed to
+# recover the customer/domain terms.
+BUILTIN_HASHES: frozenset[str] = frozenset()
 
 DEFAULT_EXCLUDE_DIRS = frozenset(
     {
@@ -107,11 +85,14 @@ def _redact(term: str) -> str:
 
 
 def _load_external_patterns() -> list[re.Pattern[str]]:
-    path = os.environ.get("COMPLIANCE_LEAK_PATTERNS_FILE")
-    if not path or not Path(path).is_file():
+    # The operative denylist lives outside the committed artifact: an env-pointed file, or a
+    # git-ignored `.leakpatterns` in the working tree (materialised from a secret in CI).
+    env = os.environ.get("COMPLIANCE_LEAK_PATTERNS_FILE")
+    path = Path(env) if env else Path(".leakpatterns")
+    if not path.is_file():
         return []
     patterns: list[re.Pattern[str]] = []
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
             patterns.append(re.compile(line, re.IGNORECASE))
