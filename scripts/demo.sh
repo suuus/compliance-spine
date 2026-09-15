@@ -53,3 +53,11 @@ compliance-spine review examples/change-ai.json || true
 
 rule "14. ISEE diagnostic — coverage across Intent / Structure / Execution / Evidence"
 compliance-spine diagnose --no-evals
+
+rule "15. Commit-time enforcement — the pre-commit gate blocks a leaky commit"
+tmp="$(mktemp -d)"
+git init -q "$tmp"
+printf "def login(user):\n    logger.info(f'login for {user.email}')\n" > "$tmp/leak.py"
+git -C "$tmp" add leak.py
+( cd "$tmp" && compliance-spine scan-diff --staged ) || echo "  ^ exit 1 -> the commit would be rejected by the pre-commit hook"
+rm -rf "$tmp"
