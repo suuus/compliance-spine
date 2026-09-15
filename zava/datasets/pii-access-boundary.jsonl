@@ -1,0 +1,12 @@
+{"id": "pab-v-analytics-email", "expected": "block", "tags": ["attr"], "change": {"id": "c-pab-v1", "files": [{"path": "src/analytics/report.py", "content": "row = user.email"}], "metadata": {}}}
+{"id": "pab-v-reporting-diagnosis", "expected": "block", "tags": ["special", "key"], "change": {"id": "c-pab-v2", "files": [{"path": "src/reporting/agg.py", "content": "d = record['diagnosis']"}], "metadata": {}}}
+{"id": "pab-v-logging-ip", "expected": "block", "tags": ["kwarg"], "change": {"id": "c-pab-v3", "files": [{"path": "src/logging/audit.py", "content": "emit(ip_address=ip)"}], "metadata": {}}}
+{"id": "pab-v-public-ssn", "expected": "block", "tags": ["attr"], "change": {"id": "c-pab-v4", "files": [{"path": "public/api/handler.py", "content": "x = person.ssn"}], "metadata": {}}}
+{"id": "pab-v-marketing-key", "expected": "block", "tags": ["key"], "change": {"id": "c-pab-v5", "files": [{"path": "src/marketing/blast.py", "content": "to = customer['email']"}], "metadata": {}}}
+{"id": "pab-v-edge-iban", "expected": "block", "tags": ["attr"], "change": {"id": "c-pab-v6", "files": [{"path": "services/edge/cache.py", "content": "k = account.iban"}], "metadata": {}}}
+{"id": "pab-c-core-access", "expected": "allow", "tags": ["clean", "allowed-component"], "change": {"id": "c-pab-c1", "files": [{"path": "src/core/service.py", "content": "row = user.email"}], "metadata": {}}}
+{"id": "pab-c-analytics-aggregate", "expected": "allow", "tags": ["clean"], "change": {"id": "c-pab-c2", "files": [{"path": "src/analytics/report.py", "content": "total = count(orders)"}], "metadata": {}}}
+{"id": "pab-c-analytics-id", "expected": "allow", "tags": ["clean", "non-pii"], "change": {"id": "c-pab-c3", "files": [{"path": "src/analytics/report.py", "content": "uid = user.id"}], "metadata": {}}}
+{"id": "pab-c-substring", "expected": "allow", "tags": ["clean", "adversarial"], "change": {"id": "c-pab-c4", "files": [{"path": "src/analytics/report.py", "content": "n = user.email_count"}], "metadata": {}}}
+{"id": "pab-c-prose-comment", "expected": "allow", "tags": ["clean", "adversarial"], "change": {"id": "c-pab-c5", "files": [{"path": "src/analytics/report.py", "content": "# email the report to admins each week"}], "metadata": {}}}
+{"id": "pab-c-unrestricted-special", "expected": "allow", "tags": ["clean", "allowed-component"], "change": {"id": "c-pab-c6", "files": [{"path": "services/ml/model.py", "content": "d = record['diagnosis']"}], "metadata": {}}}

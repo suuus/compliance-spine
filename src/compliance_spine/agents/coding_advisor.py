@@ -41,6 +41,12 @@ _GUIDANCE = {
         "Assess and declare the EU AI Act risk tier; for high-risk features reference the "
         "baseline obligations (Art 9-15) and human oversight (Art 14)."
     ),
+    "pii-access-boundary": (
+        "This component must not access personal data directly (purpose limitation, "
+        "Art 5(1)(b)). Consume de-identified / aggregated data, move the access behind an "
+        "authorised service, or reclassify the component boundary in "
+        "spine/access-boundaries.yaml."
+    ),
 }
 
 

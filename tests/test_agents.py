@@ -30,7 +30,7 @@ def test_test_author_selects_applicable_gates():
     ai = TestAuthorAgent().run(_c({"ai_feature": "scoring"}))
     assert "ai-act-risk-tier" in ai.detail["gates"]
     none = TestAuthorAgent().run(_c({"data_category": "none"}))
-    assert none.detail["gates"] == ["encryption-required", "no-pii-in-logs"]
+    assert none.detail["gates"] == ["encryption-required", "no-pii-in-logs", "pii-access-boundary"]
 
 
 def test_quality_reviewer_refuses_never_delegate(tmp_path):

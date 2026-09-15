@@ -10,6 +10,7 @@ from compliance_spine.gates.builtins.gdpr import (
     SpecialCategoryGate,
 )
 from compliance_spine.gates.builtins.no_pii_in_logs import NoPiiInLogsGate
+from compliance_spine.gates.builtins.pii_access_boundary import PiiAccessBoundaryGate
 
 _ALL = (
     NoPiiInLogsGate,
@@ -20,6 +21,7 @@ _ALL = (
     EncryptionRequiredGate,
     AutomatedDecisionGate,
     AiActRiskTierGate,
+    PiiAccessBoundaryGate,
 )
 
 GATE_CLASSES = {g.name: g for g in _ALL}
@@ -32,6 +34,7 @@ __all__ = [
     "EncryptionRequiredGate",
     "LawfulBasisGate",
     "NoPiiInLogsGate",
+    "PiiAccessBoundaryGate",
     "RetentionTtlGate",
     "SpecialCategoryGate",
 ]

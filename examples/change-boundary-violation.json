@@ -1,0 +1,10 @@
+{
+  "id": "pr-6001",
+  "files": [
+    {
+      "path": "src/analytics/dashboard.py",
+      "content": "def build_report(user):\n    return {'label': user.full_name, 'contact': user.email}"
+    }
+  ],
+  "metadata": {}
+}

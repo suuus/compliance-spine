@@ -9,7 +9,7 @@ from compliance_spine.agents.base import Agent, AgentResult
 from compliance_spine.change import Change
 
 # Gates that apply to every change (code-level scans).
-_ALWAYS = ("no-pii-in-logs", "encryption-required")
+_ALWAYS = ("no-pii-in-logs", "encryption-required", "pii-access-boundary")
 
 
 def _applicable(change: Change) -> list[str]:

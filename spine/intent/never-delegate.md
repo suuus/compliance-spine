@@ -49,9 +49,14 @@ convenience. This is the constitution the agents inherit. Keep it short, ranked,
    - Enforced by: `spine/policies/ai-act-risk-tier.rego` + the AI Act Baseline agent
    - Owner: <name> · Ranked: 8
 
-9. **Every consequential decision has a named human owner in Evidence.**
-   - Enforced by: the ghost-decision detector (`evidence/`)
+9. **No component accesses personal data outside its declared purpose or access boundary**
+   (purpose limitation, GDPR Art 5(1)(b); data minimisation, Art 5(1)(c)).
+   - Enforced by: `spine/policies/pii-access-boundary.rego`
    - Owner: <name> · Ranked: 9
+
+10. **Every consequential decision has a named human owner in Evidence.**
+   - Enforced by: the ghost-decision detector (`evidence/`)
+   - Owner: <name> · Ranked: 10
 
 ---
 

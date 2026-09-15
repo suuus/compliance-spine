@@ -68,11 +68,12 @@ compliance-spine-mcp        # stdio transport; tools: check_change, advise, revi
 ```
 
 ## What's implemented
-- **8 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,
-  cross-border transfer, encryption/secrets, automated decision (Art 22), AI-Act risk tier.
+- **9 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,
+  cross-border transfer, encryption/secrets, automated decision (Art 22), AI-Act risk tier,
+  PII access-boundary (purpose limitation).
 - **Evidence** — schema-validated, hash-chained ledger + ghost-decision detector.
 - **4 agents** — coding-advisor, test-author, quality-reviewer, ai-act-baseline.
-- **ZAVA** — 77-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
+- **ZAVA** — 89-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
 - **Confidentiality leak-guard** — hashed denylist; runs in pre-commit and CI.
 
 ## Make it yours

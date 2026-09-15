@@ -65,3 +65,9 @@ gates:
     build_time: escalate         # human confirms classification for high-risk
     run_time: block
     default_caution: high_risk   # treat as high-risk until assessed otherwise
+
+  pii-access-boundary:
+    intent_ref: intent/never-delegate#pii-access-boundary
+    severity: high
+    build_time: block            # purpose limitation: restricted component touching PII
+    run_time: block

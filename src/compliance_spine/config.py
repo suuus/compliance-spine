@@ -45,6 +45,14 @@ class Paths:
         return self.spine_dir / "gates" / "gate-config.yaml"
 
     @property
+    def data_catalogue(self) -> Path:
+        return self.spine_dir / "data-catalogue.yaml"
+
+    @property
+    def access_boundaries(self) -> Path:
+        return self.spine_dir / "access-boundaries.yaml"
+
+    @property
     def evidence_dir(self) -> Path:
         return self.root / "evidence"
 
