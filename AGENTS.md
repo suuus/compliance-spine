@@ -4,6 +4,10 @@ This repository is the **compliance spine** — an ISEE-based system that keeps 
 software development GDPR- and EU AI Act-accountable *by construction*. When you (Copilot)
 propose, review, or ship changes here, operate **inside** the spine.
 
+> **Full GDPR + EU AI Act behavioural ruleset** (hard stops, per-area rules for coding,
+> testing, and review): see [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
+> It applies to all Copilot work here. This file is the spine-workflow quick reference.
+
 ## The golden rule
 Any change that touches **personal data, logging/telemetry, storage, cross-border data flow,
 secrets, or an AI feature** must pass the spine's fail-closed check before it is considered
