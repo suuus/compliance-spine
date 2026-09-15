@@ -1,0 +1,19 @@
+# Pre-commit hooks for the compliance spine.
+# Install:  pre-commit install
+# The leak-guard runs on every commit as a hard, fail-closed gate.
+repos:
+  - repo: local
+    hooks:
+      - id: leak-guard
+        name: confidentiality leak-guard
+        entry: python ci/leak_scan.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Environments
+.venv/
+venv/
+.env
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Runtime evidence (never commit the live ledger; it may contain change context)
+evidence/ledger/
+*.ledger.jsonl
+
+# External, plaintext leak-scan patterns for real deployment — never committed.
+.leakpatterns
+
+# Node (agentile / reuse assets)
+node_modules/
