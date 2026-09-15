@@ -1,4 +1,15 @@
-"""Command-line interface for the compliance spine."""
+"""Command-line interface for the compliance spine.
+
+Subcommands map onto the ISEE loop:
+  intent    — list the never-delegate rules (Intent)
+  doctor    — check every gate traces to a principle (Structure serves Intent)
+  check     — run the fail-closed gates over a change and emit Evidence (Structure + Execution)
+  override  — a human silences a blocking gate for a bounded window (human-in-the-loop)
+  evidence  — show recent Evidence records
+  verify    — verify the Evidence hash-chain (tamper detection)
+  ghosts    — find consequential decisions with no named human owner
+  eval      — run the ZAVA suite proving the gates work
+"""
 
 from __future__ import annotations
 
@@ -6,21 +17,25 @@ import argparse
 
 import yaml
 
+from compliance_spine.change import Change
 from compliance_spine.config import paths
+from compliance_spine.evidence.detector import scan
+from compliance_spine.evidence.ledger import Ledger
+from compliance_spine.gates.runner import enforce
 from compliance_spine.intent import IntentRegistry, validate_traceability
+from compliance_spine.overrides import OverrideStore
+from compliance_spine.zava import run as zava_run
 
 
-def _cmd_intent(_args: argparse.Namespace) -> int:
-    registry = IntentRegistry.load()
-    for r in registry.rules:
-        owner = r.owner or "(unassigned)"
-        enforced = ", ".join(r.enforced_by) or "—"
+def _cmd_intent(_a: argparse.Namespace) -> int:
+    for r in IntentRegistry.load().rules:
         print(f"[{r.rank}] {r.slug}: {r.title}")
-        print(f"      owner={owner}  enforced_by={enforced}")
+        enforced = ", ".join(r.enforced_by) or "—"
+        print(f"      owner={r.owner or '(unassigned)'}  enforced_by={enforced}")
     return 0
 
 
-def _cmd_doctor(_args: argparse.Namespace) -> int:
+def _cmd_doctor(_a: argparse.Namespace) -> int:
     registry = IntentRegistry.load()
     gate_config = yaml.safe_load(paths().gate_config.read_text(encoding="utf-8")) or {}
     findings = validate_traceability(registry, gate_config)
@@ -35,18 +50,128 @@ def _cmd_doctor(_args: argparse.Namespace) -> int:
     return 1 if errors else 0
 
 
+def _cmd_check(a: argparse.Namespace) -> int:
+    change = Change.from_json_file(a.change)
+    result = enforce(change, phase=a.phase, overrides=OverrideStore())
+    print(result.summary())
+    return 0 if result.allowed else 1
+
+
+def _cmd_override(a: argparse.Namespace) -> int:
+    from compliance_spine import human
+
+    change = Change.from_json_file(a.change)
+    signers = dict(s.split(":", 1) for s in a.signer)
+    try:
+        record = human.request_override(
+            change,
+            a.gate,
+            reason=a.reason,
+            signers=signers,
+            signature=a.signature,
+            days=a.days,
+            compensating_control=a.compensating_control,
+        )
+    except (human.PolicyError, KeyError) as exc:
+        print(f"override rejected: {exc}")
+        return 1
+    print(f"override recorded: {record['id']} (gate '{a.gate}', "
+          f"expires {record['override']['expires']})")
+    return 0
+
+
+def _cmd_evidence(a: argparse.Namespace) -> int:
+    records = Ledger().read_all()
+    if not records:
+        print("evidence: ledger is empty.")
+        return 0
+    for rec in records[-a.limit :]:
+        actor = rec.get("actor", {})
+        owner = (rec.get("owner") or {}).get("human_id", "")
+        subject = rec.get("subject", {})
+        print(
+            f"{rec['id']}  {rec['ts']}  {rec['action']:9} {rec['severity']:8} "
+            f"{actor.get('type')}:{actor.get('id')}  {rec['rule_id']}  "
+            f"change={subject.get('change')}"
+            + (f"  owner={owner}" if owner else "")
+        )
+    return 0
+
+
+def _cmd_verify(_a: argparse.Namespace) -> int:
+    result = Ledger().verify()
+    if result.ok:
+        print(f"verify: OK — {result.count} record(s), chain intact.")
+        return 0
+    print(f"verify: FAILED — {result.count} record(s), {len(result.errors)} error(s):")
+    for e in result.errors:
+        print(f"  - {e}")
+    return 1
+
+
+def _cmd_ghosts(_a: argparse.Namespace) -> int:
+    findings = scan(Ledger())
+    if not findings:
+        print("ghosts: none — every consequential decision has a named human owner.")
+        return 0
+    print(f"ghosts: {len(findings)} decision(s) without a named human owner:")
+    for g in findings:
+        print(f"  - {g.render()}")
+    return 1
+
+
+def _cmd_eval(a: argparse.Namespace) -> int:
+    thresholds = {}
+    if a.recall_min is not None:
+        thresholds["recall_min"] = a.recall_min
+    if a.fpr_max is not None:
+        thresholds["fpr_max"] = a.fpr_max
+    report = zava_run(thresholds=thresholds or None)
+    print(report.summary())
+    return 0 if report.passed else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="compliance-spine",
         description="ISEE compliance spine — GDPR + EU AI Act controls for agentic delivery.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("intent", help="list the never-delegate rules (Intent)").set_defaults(
-        func=_cmd_intent
-    )
+
+    sub.add_parser("intent", help="list the never-delegate rules").set_defaults(func=_cmd_intent)
     sub.add_parser("doctor", help="validate intent <-> gate traceability").set_defaults(
         func=_cmd_doctor
     )
+
+    p_check = sub.add_parser("check", help="run gates over a change (JSON) and emit evidence")
+    p_check.add_argument("change", help="path to a change JSON file")
+    p_check.add_argument("--phase", choices=["build", "run"], default="build")
+    p_check.set_defaults(func=_cmd_check)
+
+    p_ov = sub.add_parser("override", help="silence a blocking gate for a bounded window")
+    p_ov.add_argument("change", help="path to a change JSON file")
+    p_ov.add_argument("gate", help="gate name to silence")
+    p_ov.add_argument("--reason", required=True)
+    p_ov.add_argument("--signer", action="append", default=[], metavar="ROLE:PERSON", required=True)
+    p_ov.add_argument("--signature", required=True)
+    p_ov.add_argument("--days", type=int, default=None)
+    p_ov.add_argument("--compensating-control", dest="compensating_control", default=None)
+    p_ov.set_defaults(func=_cmd_override)
+
+    p_ev = sub.add_parser("evidence", help="show recent evidence records")
+    p_ev.add_argument("--limit", type=int, default=20)
+    p_ev.set_defaults(func=_cmd_evidence)
+
+    sub.add_parser("verify", help="verify the evidence hash-chain").set_defaults(func=_cmd_verify)
+    sub.add_parser("ghosts", help="find decisions with no named human owner").set_defaults(
+        func=_cmd_ghosts
+    )
+
+    p_eval = sub.add_parser("eval", help="run the ZAVA compliance eval suite")
+    p_eval.add_argument("--recall-min", dest="recall_min", type=float, default=None)
+    p_eval.add_argument("--fpr-max", dest="fpr_max", type=float, default=None)
+    p_eval.set_defaults(func=_cmd_eval)
+
     return parser
 
 

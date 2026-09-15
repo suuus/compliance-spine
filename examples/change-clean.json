@@ -1,0 +1,13 @@
+{
+  "id": "pr-4218",
+  "files": [
+    {
+      "path": "src/service/auth.py",
+      "content": "def login(user):\n    logger.info(f\"login ok for request {request_id} in {duration}ms\")\n    return ok"
+    }
+  ],
+  "metadata": {
+    "data_category": "none",
+    "region": "eu"
+  }
+}

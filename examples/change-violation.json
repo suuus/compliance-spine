@@ -1,0 +1,13 @@
+{
+  "id": "pr-4217",
+  "files": [
+    {
+      "path": "src/service/auth.py",
+      "content": "def login(user):\n    logger.info(f\"login for {user.email} from {ip_address}\")\n    return ok"
+    }
+  ],
+  "metadata": {
+    "data_category": "personal",
+    "region": "eu"
+  }
+}

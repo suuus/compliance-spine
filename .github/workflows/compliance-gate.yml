@@ -1,0 +1,40 @@
+name: compliance-gate
+
+# The compliance spine as a required PR check. Every step is fail-closed: if it cannot
+# prove compliance, the job fails and the change does not merge.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  spine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install spine (with DeepEval runner)
+        run: pip install -e ".[dev,zava]"
+
+      - name: Confidentiality leak-guard
+        run: python ci/leak_scan.py .
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Intent <-> gate traceability
+        run: compliance-spine doctor
+
+      - name: Unit + integration tests
+        run: pytest
+
+      - name: ZAVA compliance evals
+        run: compliance-spine eval
+
+      - name: Evidence ledger integrity
+        run: compliance-spine verify
