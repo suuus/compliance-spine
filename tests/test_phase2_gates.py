@@ -5,6 +5,7 @@ from compliance_spine.gates.base import ALLOW, BLOCK, ESCALATE, GateSpec
 from compliance_spine.gates.builtins.ai_act import AiActRiskTierGate
 from compliance_spine.gates.builtins.automated_decision import AutomatedDecisionGate
 from compliance_spine.gates.builtins.gdpr import EncryptionRequiredGate, LawfulBasisGate
+from compliance_spine.gates.builtins.model_governance import ModelGovernanceGate
 from compliance_spine.gates.builtins.pii_access_boundary import PiiAccessBoundaryGate
 
 
@@ -58,3 +59,26 @@ def test_pii_access_boundary_allows_unrestricted_component():
     spec = GateSpec("pii-access-boundary", "i", "high", build_time="block")
     ok = Change(id="c", files=[ChangeFile("src/core/service.py", "x = user.email")])
     assert PiiAccessBoundaryGate().evaluate(ok, spec).decision == ALLOW
+
+
+def test_model_governance_blocks_ungoverned_model_change():
+    spec = GateSpec("model-governance", "i", "high", build_time="block")
+    res = ModelGovernanceGate().evaluate(_c({"ai_feature": "scoring"}), spec)
+    assert res.decision == BLOCK
+
+
+def test_model_governance_allows_fully_governed_change():
+    spec = GateSpec("model-governance", "i", "high", build_time="block")
+    meta = {
+        "ai_feature": "scoring",
+        "model_validation": "zava-42",
+        "model_documentation": "card.md",
+        "model_version": "v3",
+    }
+    assert ModelGovernanceGate().evaluate(_c(meta), spec).decision == ALLOW
+
+
+def test_model_governance_triggers_on_model_path():
+    spec = GateSpec("model-governance", "i", "high", build_time="block")
+    change = Change(id="c", files=[ChangeFile("src/ml/train.py", "train()")])
+    assert ModelGovernanceGate().evaluate(change, spec).decision == BLOCK

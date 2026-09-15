@@ -71,3 +71,9 @@ gates:
     severity: high
     build_time: block            # purpose limitation: restricted component touching PII
     run_time: block
+
+  model-governance:
+    intent_ref: intent/never-delegate#model-governance
+    severity: high
+    build_time: block            # a model/AI change needs validation + docs + a change record
+    run_time: block

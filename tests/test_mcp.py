@@ -47,7 +47,7 @@ def test_advise_clean_ok():
 
 
 def test_list_intent_returns_constitution():
-    assert len(m.list_intent()) == 10
+    assert len(m.list_intent()) == 11
 
 
 def test_run_evals_passes():

@@ -47,6 +47,11 @@ _GUIDANCE = {
         "authorised service, or reclassify the component boundary in "
         "spine/access-boundaries.yaml."
     ),
+    "model-governance": (
+        "A model / AI change needs governance: reference its validation (an eval/ZAVA run), "
+        "its technical documentation (Art 11), and a recorded version / change record. "
+        "Declare model_validation, model_documentation, and model_version."
+    ),
 }
 
 

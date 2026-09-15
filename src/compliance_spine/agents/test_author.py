@@ -23,6 +23,8 @@ def _applicable(change: Change) -> list[str]:
         gates.append("automated-decision")
     if m.get("ai_feature"):
         gates.append("ai-act-risk-tier")
+    if m.get("ai_feature") or m.get("model_change"):
+        gates.append("model-governance")
     return sorted(dict.fromkeys(gates))
 
 

@@ -35,7 +35,17 @@ _CASES = [
     ("clean", {"data_category": "none"}, "logger.info('ok')", "approve"),
     ("pii", {"data_category": "none"}, "logger.info(f'{user.email}')", "changes"),
     ("auto-decision", {"automated_decision": True}, "decide()", "escalate"),
-    ("ai-feature", {"ai_feature": "scoring"}, "score()", "escalate"),
+    (
+        "ai-feature",
+        {
+            "ai_feature": "scoring",
+            "model_validation": "zava-1",
+            "model_documentation": "card.md",
+            "model_version": "v1",
+        },
+        "score()",
+        "escalate",
+    ),
     ("secret", {"data_category": "none"}, "api_key = 'AKIA1234567890ABCDEF'", "changes"),
 ]
 

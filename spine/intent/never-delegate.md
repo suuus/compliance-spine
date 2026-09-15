@@ -54,9 +54,14 @@ convenience. This is the constitution the agents inherit. Keep it short, ranked,
    - Enforced by: `spine/policies/pii-access-boundary.rego`
    - Owner: <name> · Ranked: 9
 
-10. **Every consequential decision has a named human owner in Evidence.**
-   - Enforced by: the ghost-decision detector (`evidence/`)
+10. **No model or AI change ships without validation, documentation, and a recorded change**
+   (accountability; EU AI Act Art 11–12; model change control).
+   - Enforced by: `spine/policies/model-governance.rego`
    - Owner: <name> · Ranked: 10
+
+11. **Every consequential decision has a named human owner in Evidence.**
+   - Enforced by: the ghost-decision detector (`evidence/`)
+   - Owner: <name> · Ranked: 11
 
 ---
 

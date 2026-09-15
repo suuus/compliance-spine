@@ -79,12 +79,12 @@ component is now blocked locally. CI runs the same check on the PR diff against 
 branch (`compliance-spine scan-diff --base origin/<base>`).
 
 ## What's implemented
-- **9 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,
+- **10 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,
   cross-border transfer, encryption/secrets, automated decision (Art 22), AI-Act risk tier,
-  PII access-boundary (purpose limitation).
+  PII access-boundary (purpose limitation), model-governance (validation + docs + change record).
 - **Evidence** — schema-validated, hash-chained ledger + ghost-decision detector.
 - **4 agents** — coding-advisor, test-author, quality-reviewer, ai-act-baseline.
-- **ZAVA** — 89-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
+- **ZAVA** — 100-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
 - **Confidentiality leak-guard** — hashed denylist; runs in pre-commit and CI.
 
 ## Make it yours
