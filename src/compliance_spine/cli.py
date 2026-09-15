@@ -17,6 +17,12 @@ import argparse
 
 import yaml
 
+from compliance_spine.agents import (
+    AiActBaselineAgent,
+    CodingAdvisorAgent,
+    QualityReviewerAgent,
+    TestAuthorAgent,
+)
 from compliance_spine.change import Change
 from compliance_spine.config import paths
 from compliance_spine.evidence.detector import scan
@@ -131,6 +137,33 @@ def _cmd_eval(a: argparse.Namespace) -> int:
     return 0 if report.passed else 1
 
 
+def _cmd_advise(a: argparse.Namespace) -> int:
+    result = CodingAdvisorAgent().run(Change.from_json_file(a.change))
+    print(result.render())
+    return 0
+
+
+def _cmd_tests(a: argparse.Namespace) -> int:
+    result = TestAuthorAgent().run(Change.from_json_file(a.change))
+    print(result.render())
+    if a.emit_stubs:
+        for code in result.detail["stubs"].values():
+            print("\n" + code)
+    return 0
+
+
+def _cmd_review(a: argparse.Namespace) -> int:
+    result = QualityReviewerAgent().run(Change.from_json_file(a.change), ledger=Ledger())
+    print(result.render())
+    return 0 if result.ok else 1
+
+
+def _cmd_ai_act(a: argparse.Namespace) -> int:
+    result = AiActBaselineAgent().run(Change.from_json_file(a.change), ledger=Ledger())
+    print(result.render())
+    return 0 if result.ok else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="compliance-spine",
@@ -171,6 +204,23 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument("--recall-min", dest="recall_min", type=float, default=None)
     p_eval.add_argument("--fpr-max", dest="fpr_max", type=float, default=None)
     p_eval.set_defaults(func=_cmd_eval)
+
+    p_advise = sub.add_parser("advise", help="coding-advisor: GDPR/AI-Act remediation guidance")
+    p_advise.add_argument("change")
+    p_advise.set_defaults(func=_cmd_advise)
+
+    p_tests = sub.add_parser("tests", help="test-author: recommend compliance tests")
+    p_tests.add_argument("change")
+    p_tests.add_argument("--emit-stubs", action="store_true", help="print generated test stubs")
+    p_tests.set_defaults(func=_cmd_tests)
+
+    p_review = sub.add_parser("review", help="quality-reviewer: verdict + evidence")
+    p_review.add_argument("change")
+    p_review.set_defaults(func=_cmd_review)
+
+    p_aiact = sub.add_parser("ai-act", help="ai-act-baseline: risk tier + obligations checklist")
+    p_aiact.add_argument("change")
+    p_aiact.set_defaults(func=_cmd_ai_act)
 
     return parser
 

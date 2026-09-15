@@ -34,8 +34,8 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-# The DeepEval test must set env vars and importorskip before importing deepeval.
-"zava/test_zava.py" = ["E402"]
+# The DeepEval tests must set env vars and importorskip before importing deepeval.
+"zava/test_*.py" = ["E402"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "zava"]
