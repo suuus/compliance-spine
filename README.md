@@ -2,7 +2,10 @@
 
 **An ISEE-based agent that keeps agentic software development GDPR- and EU AI Act-accountable — by construction.**
 
-> Status: starting point / design seed for development. Not production code yet.
+> Status: **running implementation** — installable Python package (`compliance_spine`)
+> with a CLI, an MCP server, 8 fail-closed gates, 4 agents, a hash-chained Evidence
+> ledger, and a 77-case ZAVA suite (recall 1.00 / FPR 0.00). See
+> [GETTING-STARTED](./GETTING-STARTED.md) to install and run `./scripts/demo.sh`.
 > **Not legal advice.** This agent *assists and evidences* compliance; it does not
 > certify it. A human owner (DPO / privacy engineer / legal) signs off. See
 > [Boundaries](#boundaries--honest-limits).

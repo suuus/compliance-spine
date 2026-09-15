@@ -1,0 +1,16 @@
+{
+  "id": "pr-5001",
+  "files": [
+    {
+      "path": "src/ml/score.py",
+      "content": "def score(features):\n    return model.predict(features)"
+    }
+  ],
+  "metadata": {
+    "ai_feature": "scoring",
+    "data_category": "personal",
+    "lawful_basis": "contract",
+    "retention_days": 365,
+    "encryption": { "at_rest": true, "in_transit": true }
+  }
+}

@@ -8,6 +8,9 @@
   ],
   "metadata": {
     "data_category": "personal",
-    "region": "eu"
+    "region": "eu",
+    "lawful_basis": "contract",
+    "retention_days": 90,
+    "encryption": { "at_rest": true, "in_transit": true }
   }
 }

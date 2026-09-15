@@ -41,3 +41,15 @@ compliance-spine ghosts
 
 rule "10. ZAVA — prove the gate actually catches violations"
 compliance-spine eval
+
+rule "11. Coding-advisor — remediation guidance for the violation"
+compliance-spine advise examples/change-violation.json
+
+rule "12. AI feature — default to high-risk until assessed (Art 9-15 checklist)"
+compliance-spine ai-act examples/change-ai.json || true
+
+rule "13. Quality-reviewer — refuses to auto-approve a never-delegate escalation"
+compliance-spine review examples/change-ai.json || true
+
+rule "14. ISEE diagnostic — coverage across Intent / Structure / Execution / Evidence"
+compliance-spine diagnose --no-evals

@@ -1,18 +1,33 @@
 # Getting started
 
-How to go from the [README](./README.md) design to a running MVP. Read the README first —
-this is the build path.
+This is the **running implementation** of the [README](./README.md) design: an installable
+Python package (`compliance_spine`) with a CLI, an MCP server, and a ZAVA eval suite.
 
 ## Prerequisites
-- An eval runner for ZAVA (pick one): DeepEval, promptfoo, Azure AI Evaluation, or MLflow.
-- A policy engine for the gates (pick one): OPA/Rego, Conftest, or a small gate DSL.
-- CI that can fail a build (GitHub Actions, etc.) and block a merge.
-- Access to the coding-agent surface you're governing (e.g. GitHub Copilot App skills / MCP).
-- A named human owner: **DPO / privacy engineer** who signs the spine. Nothing ships without one.
+- Python 3.11+ and `pip`.
+- CI that can fail a build and block a merge (a GitHub Actions workflow is included).
+- A named human owner — **DPO / privacy engineer** — who signs the spine (`spine/intent/`).
+- Optional: the coding-agent surface you're governing (GitHub Copilot App / MCP client).
+
+## Install
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev,zava,mcp]"     # core + tests + DeepEval + MCP server
+```
+Core install (`pip install -e .`) needs only `pyyaml` + `jsonschema`; DeepEval and the MCP
+SDK are optional extras. ZAVA also has a native runner, so the eval suite works without
+DeepEval.
+
+## See the whole loop in 30 seconds
+```bash
+./scripts/demo.sh
+```
+This runs Intent → a fail-closed block → a clean allow → a co-signed human override →
+the Evidence trail → hash-chain verification → the ghost scan → ZAVA.
 
 ## How the pieces connect
 ```
-Intent (never-delegate)  →  Structure (spine: policies + fail-closed gates)
+Intent (never-delegate)  →  Structure (fail-closed gates)
         │                                   │
         │ agents inherit                    │ enforce
         ▼                                   ▼
@@ -20,36 +35,57 @@ Execution (4 agents on real code)  →  Evidence (hash-chained log + detector)
                                             ▲
                                     ZAVA proves the gates actually close
 ```
-- **Fail-closed gates** enforce → **Evidence** records it (tamper-evident, traceable) →
-  **ZAVA** proves the controls work. Build them in that dependency order.
 
-## MVP build path (prove the loop on one repo, one data category)
-1. **Intent** — fill in [`spine/intent/never-delegate.md`](./spine/intent/never-delegate.md)
-   with 3–7 real non-negotiables. Start with one: *no personal data in logs*.
-2. **Structure** — author one fail-closed gate: `spine/policies/no-pii-in-logs.rego`
-   (see [GATE-AUTHORING](./spine/policies/GATE-AUTHORING.md)). Wire it into CI so it **blocks**.
-3. **Evidence** — implement the writer against
-   [`evidence/schema/decision-record.schema.json`](./evidence/schema/decision-record.schema.json):
-   append-only, `prev_hash` chained. Emit an event on every gate decision.
-4. **Detector** — flag one seeded change that touches personal data with no owner.
-5. **ZAVA** — add one `zava/datasets/` gate-efficacy eval: seed the violation, assert the
-   gate **closes** (see [ZAVA](./zava/ZAVA.md)).
-6. **Human gate** — one review checkpoint on "new personal-data processing"
-   (see [GOVERNANCE](./GOVERNANCE.md)).
+## The CLI
+```bash
+compliance-spine intent            # the never-delegate list (Intent)
+compliance-spine doctor            # every gate traces to a principle (Structure -> Intent)
+compliance-spine check CHANGE.json # run the fail-closed gates, emit Evidence
+compliance-spine advise CHANGE.json    # coding-advisor: remediation guidance
+compliance-spine tests  CHANGE.json    # test-author: recommended compliance tests
+compliance-spine review CHANGE.json    # quality-reviewer: verdict (+ Evidence)
+compliance-spine ai-act CHANGE.json    # ai-act-baseline: risk tier + Art 9-15 checklist
+compliance-spine override CHANGE.json GATE --reason R \
+    --signer spine_author:you --signer dpo:them --signature SIG   # human-in-the-loop
+compliance-spine evidence          # recent Evidence records
+compliance-spine verify            # verify the hash-chain (tamper detection)
+compliance-spine ghosts            # decisions with no named human owner
+compliance-spine eval              # ZAVA: recall / false-positive-rate per gate
+compliance-spine diagnose          # ISEE coverage & maturity
+compliance-spine governance        # owners, overrides, ledger, ghosts
+compliance-spine export CHANGE_ID --out bundle.json   # audit / DSAR bundle
+```
+A **change** is a small JSON file — see [`examples/`](./examples). `metadata` declares the
+compliance context (data category, lawful basis, retention, transfers, AI feature, ...);
+the gates fire on what a change declares and fail closed when a required attestation is
+missing.
 
-When step 5 is green and step 4 flags the seeded ghost, the loop works. Everything else is
-breadth (more controls, more evals, the AI Act baseline, more agents).
+## MCP (for the GitHub Copilot App / any MCP client)
+```bash
+compliance-spine-mcp        # stdio transport; tools: check_change, advise, review,
+                            # recommend_tests, classify_ai_act_risk, verify_ledger,
+                            # scan_ghosts, run_evals, list_intent
+```
 
-## Reuse what already exists
-- **git-ape** → the gate / approval / drift-detection / evidence engine. Fastest path for
-  steps 2–4.
-- **ape-context** → generate `never-delegate.md` + `data-catalogue.yaml` from existing
-  policies/DPAs.
-- **isee-advisor** → the `diagnostics/` compliance-maturity check.
+## What's implemented
+- **8 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,
+  cross-border transfer, encryption/secrets, automated decision (Art 22), AI-Act risk tier.
+- **Evidence** — schema-validated, hash-chained ledger + ghost-decision detector.
+- **4 agents** — coding-advisor, test-author, quality-reviewer, ai-act-baseline.
+- **ZAVA** — 77-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
+- **Confidentiality leak-guard** — hashed denylist; runs in pre-commit and CI.
 
-## Then, phase by phase
-See README §11. Phase 2 = full GDPR control catalogue; Phase 3 = AI Act baseline agent;
-Phase 4 = GitHub Copilot App skills + Canvas review gates + Work IQ context.
+## Make it yours
+1. Edit [`spine/intent/never-delegate.md`](./spine/intent/never-delegate.md) — assign real
+   owners and signatures.
+2. Tune [`spine/gates/gate-config.yaml`](./spine/gates/gate-config.yaml) — severities,
+   silence policy, circuit-breaker behaviour.
+3. Add ZAVA cases under [`zava/datasets/`](./zava/datasets) for your own edge cases.
 
-> **Not legal advice.** This assists + evidences compliance; a qualified human owns the
+## Reuse
+- **git-ape** -> gate / approval / drift-detection / evidence patterns.
+- **ape-context** -> generate `never-delegate.md` from existing policies/DPAs.
+- **isee-advisor** -> the `diagnose` maturity idea.
+
+> **Not legal advice.** This assists and evidences compliance; a qualified human owns the
 > sign-off. See README §13.

@@ -25,9 +25,11 @@ from compliance_spine.agents import (
 )
 from compliance_spine.change import Change
 from compliance_spine.config import paths
+from compliance_spine.diagnostics import diagnose
 from compliance_spine.evidence.detector import scan
 from compliance_spine.evidence.ledger import Ledger
 from compliance_spine.gates.runner import enforce
+from compliance_spine.governance import export_change, governance_report
 from compliance_spine.intent import IntentRegistry, validate_traceability
 from compliance_spine.overrides import OverrideStore
 from compliance_spine.zava import run as zava_run
@@ -164,6 +166,38 @@ def _cmd_ai_act(a: argparse.Namespace) -> int:
     return 0 if result.ok else 1
 
 
+def _cmd_diagnose(a: argparse.Namespace) -> int:
+    diag = diagnose(run_evals=not a.no_evals)
+    print(diag.render())
+    return 0 if diag.healthy else 1
+
+
+def _cmd_governance(_a: argparse.Namespace) -> int:
+    report = governance_report()
+    print("Governance report")
+    print(f"  intent owners unassigned: {report['intent_owners_unassigned'] or 'none'}")
+    print(f"  active overrides: {len(report['active_overrides'])}")
+    for ov in report["active_overrides"]:
+        print(f"      - {ov['gate']} until {ov['expires']} ({', '.join(ov['signed_by'])})")
+    if report["expiring_overrides"]:
+        print(f"  expiring soon: {', '.join(report['expiring_overrides'])}")
+    status = "OK" if report["ledger_ok"] else "BROKEN"
+    print(f"  ledger: {status} ({report['ledger_count']} records)")
+    print(f"  ghost decisions: {report['ghosts'] or 'none'}")
+    return 0 if (report["ledger_ok"] and not report["ghosts"]) else 1
+
+
+def _cmd_export(a: argparse.Namespace) -> int:
+    bundle = export_change(a.change_id, out=a.out)
+    print(f"exported {bundle['count']} record(s) for change '{a.change_id}'"
+          + (f" -> {a.out}" if a.out else ""))
+    if not a.out:
+        import json
+
+        print(json.dumps(bundle, indent=2, ensure_ascii=False))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="compliance-spine",
@@ -221,6 +255,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_aiact = sub.add_parser("ai-act", help="ai-act-baseline: risk tier + obligations checklist")
     p_aiact.add_argument("change")
     p_aiact.set_defaults(func=_cmd_ai_act)
+
+    p_diag = sub.add_parser("diagnose", help="ISEE coverage & maturity diagnostic")
+    p_diag.add_argument("--no-evals", action="store_true", help="skip running ZAVA")
+    p_diag.set_defaults(func=_cmd_diagnose)
+
+    p_gov = sub.add_parser("governance", help="governance gaps: owners, overrides, ledger, ghosts")
+    p_gov.set_defaults(func=_cmd_governance)
+
+    p_exp = sub.add_parser("export", help="export an audit/DSAR evidence bundle for a change")
+    p_exp.add_argument("change_id", metavar="CHANGE_ID")
+    p_exp.add_argument("--out", default=None, help="write the bundle to this path")
+    p_exp.set_defaults(func=_cmd_export)
 
     return parser
 

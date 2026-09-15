@@ -22,6 +22,7 @@ dev = ["pytest>=8", "ruff>=0.6", "pre-commit>=3"]
 
 [project.scripts]
 compliance-spine = "compliance_spine.cli:main"
+compliance-spine-mcp = "compliance_spine.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
