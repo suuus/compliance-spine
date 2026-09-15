@@ -84,8 +84,9 @@ def enforce(
     overrides: OverrideStore | None = None,
     config: dict | None = None,
     emit_evidence: bool = True,
+    only: set[str] | None = None,
 ) -> EnforcementResult:
-    gates, unenforced = build_gates(config)
+    gates, unenforced = build_gates(config, only=only)
     ledger = ledger if ledger is not None else Ledger()
     results: list[GateResult] = []
     applied: list[str] = []

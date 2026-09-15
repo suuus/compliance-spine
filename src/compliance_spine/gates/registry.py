@@ -37,12 +37,16 @@ def resolve_specs(config: dict) -> dict[str, GateSpec]:
     return specs
 
 
-def build_gates(config: dict | None = None) -> tuple[list[tuple[Gate, GateSpec]], list[str]]:
+def build_gates(
+    config: dict | None = None, only: set[str] | None = None
+) -> tuple[list[tuple[Gate, GateSpec]], list[str]]:
     config = config if config is not None else load_config()
     specs = resolve_specs(config)
     enforced: list[tuple[Gate, GateSpec]] = []
     unenforced: list[str] = []
     for name, spec in specs.items():
+        if only is not None and name not in only:
+            continue
         cls = GATE_CLASSES.get(name)
         if cls is None:
             unenforced.append(name)

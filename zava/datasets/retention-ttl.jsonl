@@ -1,0 +1,7 @@
+{"id": "rt-v-no-ttl", "expected": "block", "tags": ["personal"], "change": {"id": "c-rt-v1", "files": [{"path": "svc/x.py", "content": "store()"}], "metadata": {"data_category": "personal", "persists": true}}}
+{"id": "rt-v-zero-ttl", "expected": "block", "tags": ["adversarial", "zero"], "change": {"id": "c-rt-v2", "files": [{"path": "svc/x.py", "content": "store()"}], "metadata": {"data_category": "personal", "persists": true, "retention_days": 0}}}
+{"id": "rt-v-string-ttl", "expected": "block", "tags": ["adversarial", "type"], "change": {"id": "c-rt-v3", "files": [{"path": "svc/x.py", "content": "store()"}], "metadata": {"data_category": "personal", "persists": true, "retention_days": "90"}}}
+{"id": "rt-v-special-no-ttl", "expected": "block", "tags": ["special"], "change": {"id": "c-rt-v4", "files": [{"path": "svc/x.py", "content": "store()"}], "metadata": {"data_category": "special", "persists": true}}}
+{"id": "rt-c-ttl-declared", "expected": "allow", "tags": ["clean"], "change": {"id": "c-rt-c1", "files": [{"path": "svc/x.py", "content": "store()"}], "metadata": {"data_category": "personal", "retention_days": 90}}}
+{"id": "rt-c-ephemeral", "expected": "allow", "tags": ["clean", "n/a"], "change": {"id": "c-rt-c2", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "personal", "persists": false}}}
+{"id": "rt-c-not-applicable", "expected": "allow", "tags": ["clean", "n/a"], "change": {"id": "c-rt-c3", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "none"}}}

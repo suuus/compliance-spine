@@ -7,6 +7,7 @@ from compliance_spine.zava.runner import (
     CaseResult,
     ZavaReport,
     predict,
+    predict_case,
     run,
 )
 
@@ -18,5 +19,6 @@ __all__ = [
     "ZavaReport",
     "load_cases",
     "predict",
+    "predict_case",
     "run",
 ]

@@ -1,0 +1,7 @@
+{"id": "lb-v-no-basis", "expected": "block", "tags": ["personal"], "change": {"id": "c-lb-v1", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "personal"}}}
+{"id": "lb-v-special-no-basis", "expected": "block", "tags": ["special"], "change": {"id": "c-lb-v2", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "special"}}}
+{"id": "lb-v-invalid-basis", "expected": "block", "tags": ["adversarial", "typo"], "change": {"id": "c-lb-v3", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "personal", "lawful_basis": "because_we_want_to"}}}
+{"id": "lb-v-singular-typo", "expected": "block", "tags": ["adversarial", "typo"], "change": {"id": "c-lb-v4", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "personal", "lawful_basis": "legitimate_interest"}}}
+{"id": "lb-c-contract", "expected": "allow", "tags": ["clean"], "change": {"id": "c-lb-c1", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "personal", "lawful_basis": "contract"}}}
+{"id": "lb-c-consent", "expected": "allow", "tags": ["clean"], "change": {"id": "c-lb-c2", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "personal", "lawful_basis": "consent"}}}
+{"id": "lb-c-not-applicable", "expected": "allow", "tags": ["clean", "n/a"], "change": {"id": "c-lb-c3", "files": [{"path": "svc/x.py", "content": "process()"}], "metadata": {"data_category": "none"}}}

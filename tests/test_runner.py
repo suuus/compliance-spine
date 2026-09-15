@@ -40,12 +40,13 @@ def test_override_downgrades_block(tmp_path):
         signers={"spine_author": "su", "dpo": "jane"}, signature="sig",
         ledger=led, store=store,
     )
-    result = enforce(_violation(), ledger=led, overrides=store)
+    # isolate to the silenced gate: a personal-data change also trips basis/retention/encryption
+    result = enforce(_violation(), ledger=led, overrides=store, only={"no-pii-in-logs"})
     assert result.allowed
     assert result.overrides_applied == ["no-pii-in-logs"]
 
 
-def test_unenforced_gates_reported(tmp_path):
+def test_all_gates_now_enforced(tmp_path):
     led = Ledger(tmp_path / "l.jsonl")
     result = enforce(_clean(), ledger=led)
-    assert "special-category" in result.unenforced
+    assert result.unenforced == []  # every configured gate is implemented

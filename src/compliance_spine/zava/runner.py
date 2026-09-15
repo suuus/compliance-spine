@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from compliance_spine.change import Change
+from compliance_spine.gates.builtins import GATE_CLASSES
 from compliance_spine.gates.runner import enforce
 from compliance_spine.zava.dataset import ZavaCase, load_cases
 from compliance_spine.zava.metrics import Confusion
@@ -17,10 +18,16 @@ from compliance_spine.zava.metrics import Confusion
 DEFAULT_THRESHOLDS = {"recall_min": 1.0, "fpr_max": 0.0}
 
 
-def predict(change: Change, config: dict | None = None) -> str:
+def predict(change: Change, config: dict | None = None, only: set[str] | None = None) -> str:
     """Run the fail-closed pipeline (no evidence writes) and return 'allow' or 'block'."""
-    result = enforce(change, emit_evidence=False, config=config)
+    result = enforce(change, emit_evidence=False, config=config, only=only)
     return "allow" if result.allowed else "block"
+
+
+def predict_case(case: ZavaCase, config: dict | None = None) -> str:
+    """Predict a case, isolating evaluation to its gate when that gate is implemented."""
+    only = {case.gate} if case.gate in GATE_CLASSES else None
+    return predict(case.change, config=config, only=only)
 
 
 @dataclass
@@ -30,6 +37,7 @@ class CaseResult:
     predicted: str
     passed: bool
     tags: list[str] = field(default_factory=list)
+    gate: str | None = None
 
 
 @dataclass
@@ -57,6 +65,15 @@ class ZavaReport:
     def failures(self) -> list[CaseResult]:
         return [r for r in self.results if not r.passed]
 
+    def by_gate(self) -> dict[str, tuple[int, int]]:
+        """Return {gate: (n_cases, n_misses)}."""
+        stats: dict[str, list[int]] = {}
+        for r in self.results:
+            row = stats.setdefault(r.gate or "(pipeline)", [0, 0])
+            row[0] += 1
+            row[1] += 0 if r.passed else 1
+        return {g: (n, m) for g, (n, m) in stats.items()}
+
     def summary(self) -> str:
         verdict = "PASS" if self.passed else "FAIL"
         head = (
@@ -66,6 +83,9 @@ class ZavaReport:
             f"acc={self.confusion.accuracy:.2f}"
         )
         lines = [head]
+        for gate, (n, miss) in sorted(self.by_gate().items()):
+            flag = "" if miss == 0 else f"  <<< {miss} MISS"
+            lines.append(f"  {gate:26} {n:2} cases{flag}")
         for r in self.failures:
             tags = ",".join(r.tags)
             lines.append(f"  MISS {r.id}: expected {r.expected}, got {r.predicted} [{tags}]")
@@ -82,9 +102,11 @@ def run(
     confusion = Confusion()
     results: list[CaseResult] = []
     for case in cases:
-        predicted = predict(case.change, config=config)
+        predicted = predict_case(case, config=config)
         confusion.add(case.expected, predicted)
         results.append(
-            CaseResult(case.id, case.expected, predicted, predicted == case.expected, case.tags)
+            CaseResult(
+                case.id, case.expected, predicted, predicted == case.expected, case.tags, case.gate
+            )
         )
     return ZavaReport(results, confusion, thresholds)

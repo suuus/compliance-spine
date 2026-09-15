@@ -21,7 +21,7 @@ deepeval = pytest.importorskip("deepeval")
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
 
-from compliance_spine.zava import load_cases, predict
+from compliance_spine.zava import load_cases, predict_case
 
 
 class ZavaGateEfficacyMetric(BaseMetric):
@@ -57,7 +57,7 @@ _CASES = load_cases()
 
 @pytest.mark.parametrize("case", _CASES, ids=[c.id for c in _CASES])
 def test_zava_gate_efficacy(case):
-    predicted = predict(case.change)
+    predicted = predict_case(case)
     test_case = LLMTestCase(
         input=case.id, actual_output=predicted, expected_output=case.expected
     )
