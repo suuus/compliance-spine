@@ -53,3 +53,8 @@ def build_gates(
         else:
             enforced.append((cls(), spec))
     return enforced, unenforced
+
+
+def code_scanning_gate_names() -> set[str]:
+    """Gates that inspect source directly — runnable on a raw diff with no declared metadata."""
+    return {name for name, cls in GATE_CLASSES.items() if getattr(cls, "scans_code", False)}

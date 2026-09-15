@@ -140,6 +140,7 @@ class EncryptionRequiredGate(Gate):
     """Art 32: no secrets in source; stored personal data must be encrypted at rest + in transit."""
 
     name = "encryption-required"
+    scans_code = True
 
     def check(self, change, spec: GateSpec) -> tuple[bool, list[str], dict]:
         subject = {"change": change.id, "data_category": change.data_category}

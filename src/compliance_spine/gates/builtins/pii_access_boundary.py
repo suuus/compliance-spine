@@ -61,6 +61,7 @@ def _component(path: str, restricted: frozenset[str]) -> str | None:
 
 class PiiAccessBoundaryGate(Gate):
     name = "pii-access-boundary"
+    scans_code = True
 
     def check(self, change, spec: GateSpec) -> tuple[bool, list[str], dict]:
         subject = {"change": change.id, "data_category": change.data_category}

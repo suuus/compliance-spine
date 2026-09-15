@@ -54,6 +54,7 @@ compliance-spine eval              # ZAVA: recall / false-positive-rate per gate
 compliance-spine diagnose          # ISEE coverage & maturity
 compliance-spine governance        # owners, overrides, ledger, ghosts
 compliance-spine export CHANGE_ID --out bundle.json   # audit / DSAR bundle
+compliance-spine scan-diff --staged                   # code gates on the staged diff
 ```
 A **change** is a small JSON file — see [`examples/`](./examples). `metadata` declares the
 compliance context (data category, lawful basis, retention, transfers, AI feature, ...);
@@ -66,6 +67,16 @@ compliance-spine-mcp        # stdio transport; tools: check_change, advise, revi
                             # recommend_tests, classify_ai_act_risk, verify_ledger,
                             # scan_ghosts, run_evals, list_intent
 ```
+
+## Enforce on every commit
+Instructions (`.github/copilot-instructions.md`) tell Copilot what to do; this makes it
+*enforced*. Install the hook so the code-scanning gates run on every commit:
+```bash
+pip install pre-commit && pre-commit install
+```
+A commit that logs personal data, hardcodes a secret, or reads PII from a restricted
+component is now blocked locally. CI runs the same check on the PR diff against its base
+branch (`compliance-spine scan-diff --base origin/<base>`).
 
 ## What's implemented
 - **9 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,

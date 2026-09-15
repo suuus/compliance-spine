@@ -166,6 +166,22 @@ def _cmd_ai_act(a: argparse.Namespace) -> int:
     return 0 if result.ok else 1
 
 
+def _cmd_scan_diff(a: argparse.Namespace) -> int:
+    from compliance_spine.gates.registry import code_scanning_gate_names
+    from compliance_spine.gitdiff import collect_change
+
+    if a.base:
+        change = collect_change(staged=False, base=a.base, head=a.head)
+    else:
+        change = collect_change(staged=True)
+    if not change.files:
+        print("scan-diff: no changed text files to scan.")
+        return 0
+    result = enforce(change, emit_evidence=False, only=code_scanning_gate_names())
+    print(result.summary())
+    return 0 if result.allowed else 1
+
+
 def _cmd_diagnose(a: argparse.Namespace) -> int:
     diag = diagnose(run_evals=not a.no_evals)
     print(diag.render())
@@ -259,6 +275,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_diag = sub.add_parser("diagnose", help="ISEE coverage & maturity diagnostic")
     p_diag.add_argument("--no-evals", action="store_true", help="skip running ZAVA")
     p_diag.set_defaults(func=_cmd_diagnose)
+
+    p_sd = sub.add_parser(
+        "scan-diff", help="run the code-scanning gates over the git diff (pre-commit / CI)"
+    )
+    p_sd.add_argument("--staged", action="store_true", help="scan the staged diff (default)")
+    p_sd.add_argument("--base", default=None, help="scan base..head instead of the staged diff")
+    p_sd.add_argument("--head", default="HEAD")
+    p_sd.set_defaults(func=_cmd_scan_diff)
 
     p_gov = sub.add_parser("governance", help="governance gaps: owners, overrides, ledger, ghosts")
     p_gov.set_defaults(func=_cmd_governance)

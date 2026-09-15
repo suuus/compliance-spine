@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need the base branch to diff a PR
 
       - uses: actions/setup-python@v5
         with:
@@ -44,3 +46,7 @@ jobs:
 
       - name: Evidence ledger integrity
         run: compliance-spine verify
+
+      - name: Compliance review of the PR diff (code gates)
+        if: github.event_name == 'pull_request'
+        run: compliance-spine scan-diff --base "origin/${{ github.base_ref }}"

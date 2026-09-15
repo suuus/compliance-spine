@@ -11,6 +11,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: compliance-spine-diff
+        name: compliance-spine (code gates on staged diff)
+        entry: .venv/bin/compliance-spine scan-diff --staged
+        language: system
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9
     hooks:

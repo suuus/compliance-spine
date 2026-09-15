@@ -98,6 +98,7 @@ def _scan_payload(path: str, lineno: int, payload: str) -> list[str]:
 
 class NoPiiInLogsGate(Gate):
     name = "no-pii-in-logs"
+    scans_code = True
 
     def check(self, change, spec: GateSpec) -> tuple[bool, list[str], dict]:
         findings: list[str] = []

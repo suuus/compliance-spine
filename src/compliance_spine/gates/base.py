@@ -77,6 +77,9 @@ class Gate(ABC):
     #: stable id, must match a key in gate-config.yaml
     name: str = "gate"
 
+    #: True if the gate inspects source directly (works on a raw diff, no declared metadata).
+    scans_code: bool = False
+
     @abstractmethod
     def check(self, change, spec: GateSpec) -> tuple[bool, list[str], dict]:
         """Return (compliant, findings, subject-extra). Raise to fail closed."""
