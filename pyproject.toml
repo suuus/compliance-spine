@@ -32,6 +32,9 @@ compliance-spine-mcp = "compliance_spine.mcp_server:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+compliance_spine = ["scaffold/**/*"]
+
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]

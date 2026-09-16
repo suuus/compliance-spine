@@ -18,6 +18,14 @@ Core install (`pip install -e .`) needs only `pyyaml` + `jsonschema`; DeepEval a
 SDK are optional extras. ZAVA also has a native runner, so the eval suite works without
 DeepEval.
 
+## Scaffold your policy folder
+```bash
+compliance-spine init          # writes a working spine/ + evidence/schema into the repo
+compliance-spine doctor        # confirm every gate traces to a principle (passes out of the box)
+```
+`init` writes a *functional* starter you then tune (owners/signatures, your field names, your
+components) — see **Make it yours** below. It never overwrites tuned files without `--force`.
+
 ## See the whole loop in 30 seconds
 ```bash
 ./scripts/demo.sh
@@ -38,6 +46,7 @@ Execution (4 agents on real code)  →  Evidence (hash-chained log + detector)
 
 ## The CLI
 ```bash
+compliance-spine init              # scaffold a starter spine/ into a repo (run this first)
 compliance-spine intent            # the never-delegate list (Intent)
 compliance-spine doctor            # every gate traces to a principle (Structure -> Intent)
 compliance-spine check CHANGE.json # run the fail-closed gates, emit Evidence
@@ -54,10 +63,11 @@ compliance-spine ghosts            # decisions with no named human owner
 compliance-spine eval              # ZAVA: recall / false-positive-rate per gate
 compliance-spine diagnose          # ISEE coverage & maturity
 compliance-spine matrix            # compliance matrix: article -> gate -> coverage status
+compliance-spine frameworks        # regulatory framework packs (GDPR, EU AI Act) + coverage
 compliance-spine governance        # owners, overrides, ledger, ghosts
 compliance-spine export CHANGE_ID --out bundle.json   # audit / DSAR bundle
 compliance-spine scan-diff --staged                   # code gates on the staged diff
-compliance-spine llm-review CHANGE.json               # gates (floor) + assessor (ceiling)
+compliance-spine llm-review --base origin/main        # floor (gates) ∪ ceiling (assessor) on a diff
 compliance-spine scorecard                            # recall lift vs. gates-only
 compliance-spine assess-eval                          # ZAVA on the assessor: its own recall / precision
 compliance-spine adjudicate FINDING_ID --outcome confirmed --human you --signature s
@@ -110,7 +120,7 @@ for unattended CI or an independent reviewer.
   secret-file-committed.
 - **Evidence** — schema-validated, hash-chained ledger + ghost-decision detector.
 - **4 agents** — coding-advisor, test-author, quality-reviewer, ai-act-baseline.
-- **ZAVA** — 157-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
+- **ZAVA** — 161-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
 - **LLM layer** — a layered reviewer (deterministic gates as the fail-closed floor ∪ a pluggable
   assessor as the ceiling), a recall scorecard, an assessor eval (`assess-eval`), metadata
   propose/confirm, and a learning loop (`adjudicate` / `learn`) that turns confirmed findings

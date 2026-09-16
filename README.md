@@ -4,7 +4,7 @@
 
 > Status: **running implementation** — installable Python package (`compliance_spine`)
 > with a CLI, an MCP server, 17 fail-closed gates, 4 deterministic agents (also callable as
-> GitHub Copilot `/agent` agents), a hash-chained Evidence ledger, a 157-case ZAVA suite
+> GitHub Copilot `/agent` agents), a hash-chained Evidence ledger, a 161-case ZAVA suite
 > (recall 1.00 / FPR 0.00), and an LLM layer — a layered reviewer, a recall scorecard, and a
 > learning loop — that catches the long tail without weakening the fail-closed floor. See
 > [GETTING-STARTED](./GETTING-STARTED.md) to install and run `./scripts/demo.sh`.
@@ -427,15 +427,19 @@ The spine is a Python package (the engine) + a `spine/` folder (your policy) + g
    ```bash
    pip install "compliance-spine[zava,mcp] @ git+https://github.com/suuus/compliance-spine"
    ```
-2. **Drop a `spine/` folder into your repo root and edit four files** — this is the real work:
+2. **Scaffold the policy folder, then edit four files** — the editing is the real work:
+   ```bash
+   compliance-spine init           # writes a working spine/ + evidence/schema into the repo
+   ```
+   `init` drops a functional starter (every gate already traces to a principle, so `doctor`
+   passes immediately). Then tune:
    - `spine/intent/never-delegate.md` — decisions a human must always own (your DPO signs off).
    - `spine/gates/gate-config.yaml` — which gates are on, severity, circuit-breaker.
    - `spine/data-catalogue.yaml` — *your* personal / special-category field names.
    - `spine/access-boundaries.yaml` — *your* components that must never touch raw PII.
 
-   Also copy `evidence/schema/` (the record contract). The spine finds its root by walking up
-   for `spine/` + `pyproject.toml`; **non-Python repos** just set `COMPLIANCE_SPINE_ROOT=/path/to/repo`
-   (it's authoritative — no `pyproject.toml` needed).
+   The spine finds its root by walking up for `spine/` + `pyproject.toml`; **non-Python repos**
+   just set `COMPLIANCE_SPINE_ROOT=/path/to/repo` (it's authoritative — no `pyproject.toml` needed).
 3. **Turn on enforcement — any or all of three layers:**
    - **Local** — add a pre-commit hook running `compliance-spine scan-diff --staged`.
    - **CI** — copy `.github/workflows/compliance-gate.yml` as a required PR check (fail-closed).
@@ -451,7 +455,8 @@ The spine is a Python package (the engine) + a `spine/` folder (your policy) + g
    compliance-spine eval && compliance-spine verify   # prove controls work + ledger intact
    ```
 
-See [GETTING-STARTED.md](./GETTING-STARTED.md) for the full walkthrough.
+See [GETTING-STARTED.md](./GETTING-STARTED.md) for the full walkthrough, or
+[docs/PILOT.md](./docs/PILOT.md) to run a design-partner pilot.
 
 ## 14. References (verify current versions)
 

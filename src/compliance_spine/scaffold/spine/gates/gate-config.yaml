@@ -1,0 +1,121 @@
+# Gate configuration — maps each spine policy to its enforcement behaviour.
+# See spine/policies/GATE-AUTHORING.md and README §4 (fail-closed enforcement).
+#
+# default_decision: what happens when the gate CANNOT prove compliance.
+#   Always "block" for fail-closed gates — absence of proof is a violation.
+
+defaults:
+  default_decision: block        # fail-closed: unverifiable => block
+  emit_evidence: true            # every decision writes an Evidence record
+  silence:
+    allowed: true
+    requires: [spine_author]     # critical gates also require: dpo
+    max_days: 30                 # silencing auto-expires
+
+gates:
+  no-pii-in-logs:
+    intent_ref: intent/never-delegate#no-pii-in-logs
+    severity: critical
+    build_time: block
+    run_time: circuit_breaker    # halt / flag-off / quarantine
+    breach_path_if_data_left_boundary: true
+    silence: { allowed: true, requires: [spine_author, dpo], max_days: 7 }
+
+  lawful-basis-required:
+    intent_ref: intent/never-delegate#lawful-basis
+    severity: critical
+    build_time: block
+    run_time: block
+
+  special-category:
+    intent_ref: intent/never-delegate#special-category
+    severity: critical
+    build_time: block
+    run_time: circuit_breaker
+    auto_dpia: true
+
+  automated-decision:
+    intent_ref: intent/never-delegate#automated-decision
+    severity: critical
+    build_time: escalate         # human gate: confirm intervention path + explanation
+    run_time: block
+
+  cross-border-transfer:
+    intent_ref: intent/never-delegate#cross-border-transfer
+    severity: critical
+    build_time: block
+    run_time: circuit_breaker
+    breach_path_if_data_left_boundary: true
+
+  retention-ttl:
+    intent_ref: intent/never-delegate#storage-limitation
+    severity: high
+    build_time: block
+    run_time: degrade
+
+  encryption-required:
+    intent_ref: intent/never-delegate#encryption-required
+    severity: high
+    build_time: block
+    run_time: block
+
+  ai-act-risk-tier:
+    intent_ref: intent/never-delegate#ai-act
+    severity: critical
+    build_time: escalate         # human confirms classification for high-risk
+    run_time: block
+    default_caution: high_risk   # treat as high-risk until assessed otherwise
+
+  pii-access-boundary:
+    intent_ref: intent/never-delegate#pii-access-boundary
+    severity: high
+    build_time: block            # purpose limitation: restricted component touching PII
+    run_time: block
+
+  model-governance:
+    intent_ref: intent/never-delegate#model-governance
+    severity: high
+    build_time: block            # a model/AI change needs validation + docs + a change record
+    run_time: block
+
+  consent-default:
+    intent_ref: intent/never-delegate#consent-default
+    severity: high
+    build_time: block            # optional data collection must be opt-in (Art 25(2))
+    run_time: block
+
+  weak-password-hash:
+    intent_ref: intent/never-delegate#weak-password-hash
+    severity: high
+    build_time: block            # Argon2id/bcrypt, never MD5/SHA for credentials (Art 32)
+    run_time: block
+
+  pii-in-url:
+    intent_ref: intent/never-delegate#pii-in-url
+    severity: high
+    build_time: block            # no personal data in URL path/query (Art 5(1)(f), Art 25)
+    run_time: block
+
+  insecure-transport:
+    intent_ref: intent/never-delegate#insecure-transport
+    severity: high
+    build_time: block            # TLS 1.2+ with cert verification (Art 32)
+    run_time: block
+
+  permissive-cors:
+    intent_ref: intent/never-delegate#permissive-cors
+    severity: high
+    build_time: block            # explicit CORS allowlist, never '*' on an API (Art 32)
+    run_time: block
+
+  error-leakage:
+    intent_ref: intent/never-delegate#error-leakage
+    severity: high
+    build_time: block            # no stack traces / internals to the client (Art 5(1)(f))
+    run_time: block
+
+  secret-file-committed:
+    intent_ref: intent/never-delegate#secret-file-committed
+    severity: critical
+    build_time: block            # never commit key/credential files (Art 32)
+    run_time: block

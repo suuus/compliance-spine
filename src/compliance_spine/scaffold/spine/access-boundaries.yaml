@@ -1,0 +1,25 @@
+# Access boundaries (companion to spine/intent/never-delegate.md — purpose limitation).
+#
+# Components that must NOT access personal data directly. A changed file is "restricted" when
+# any of these names appears as a path segment or a file stem (e.g. src/analytics/report.py or
+# services/analytics.py -> "analytics"). The pii-access-boundary gate fails closed when a
+# restricted file references a PII element from spine/data-catalogue.yaml.
+#
+# Rationale: analytics, reporting, public/edge, logging and marketing surfaces should consume
+# de-identified / aggregated data, not raw personal data (Art 5(1)(b) purpose limitation).
+#
+# Replace with your real component boundaries. Keep it generic — no customer/domain terms.
+
+forbid_pii_direct_access:
+  - analytics
+  - reporting
+  - reports
+  - public
+  - edge
+  - cdn
+  - logging
+  - logs
+  - metrics
+  - telemetry
+  - marketing
+  - ads

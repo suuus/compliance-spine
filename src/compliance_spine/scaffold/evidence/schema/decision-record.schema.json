@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://compliance-spine/evidence/decision-record.schema.json",
+  "title": "Compliance Spine — decision record",
+  "description": "One append-only, hash-chained Evidence entry per consequential decision. Do not update or delete records; correct with a new record that references the prior one.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "ts", "actor", "action", "subject", "rule_id", "intent_ref", "severity", "inputs_hash", "prev_hash"],
+  "properties": {
+    "id": { "type": "string", "description": "unique event id, e.g. evt_a1b2" },
+    "ts": { "type": "string", "format": "date-time" },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "type": "string", "enum": ["agent", "human", "gate", "system", "llm"] },
+        "id": { "type": "string" }
+      }
+    },
+    "action": { "type": "string", "enum": ["allow", "block", "escalate", "override", "halt", "quarantine", "emit"] },
+    "subject": {
+      "type": "object",
+      "description": "what the decision was about",
+      "properties": {
+        "change": { "type": "string", "description": "PR / commit / plan id" },
+        "data_category": { "type": "string", "description": "personal-data category (or 'none'); 'special' flag for Art 9" },
+        "ai_feature": { "type": "string" }
+      }
+    },
+    "rule_id": { "type": "string", "description": "the spine rule applied, e.g. spine/policies/no-pii-in-logs" },
+    "intent_ref": { "type": "string", "description": "the never-delegate principle it traces to" },
+    "severity": { "type": "string", "enum": ["critical", "high", "medium", "info"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "assessor confidence for a probabilistic (LLM) finding, 0-1" },
+    "owner": {
+      "type": "object",
+      "description": "required when action is a gated/human decision (allow after gate, override, halt)",
+      "additionalProperties": false,
+      "required": ["human_id", "signature"],
+      "properties": {
+        "human_id": { "type": "string" },
+        "signature": { "type": "string", "description": "cryptographic or verifiable sign-off" }
+      }
+    },
+    "override": {
+      "type": "object",
+      "description": "present only when action == override (silencing a gate)",
+      "additionalProperties": false,
+      "required": ["reason", "expires", "signed_by"],
+      "properties": {
+        "reason": { "type": "string" },
+        "compensating_control": { "type": "string" },
+        "expires": { "type": "string", "format": "date-time" },
+        "signed_by": { "type": "array", "items": { "type": "string" }, "description": "spine author + DPO for critical" }
+      }
+    },
+    "inputs_hash": { "type": "string", "description": "sha256 of what was evaluated" },
+    "outputs_hash": { "type": "string", "description": "sha256 of what was produced" },
+    "artifacts": { "type": "array", "items": { "type": "string" }, "description": "links to dpia/, ropa/, annexIV/, logs/" },
+    "spine_version": { "type": "string", "description": "policy version in force at decision time" },
+    "prev_hash": { "type": "string", "description": "sha256 of the previous record (genesis = 64 zeroes) → tamper-evident chain" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "action": { "const": "override" } } },
+      "then": { "required": ["override", "owner"] }
+    }
+  ]
+}

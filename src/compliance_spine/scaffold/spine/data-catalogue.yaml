@@ -1,0 +1,46 @@
+# Personal-data inventory (companion to spine/intent/never-delegate.md).
+#
+# Which data elements are personal / special-category. Both code gates read this list:
+# pii-access-boundary treats any of these as "PII" inside a restricted component, and
+# no-pii-in-logs treats any of these as "must not appear in logs" — so you declare them once.
+#
+# Replace with your real data catalogue. Keep it generic — no customer/domain terms.
+
+personal:
+  - email
+  - phone
+  - mobile
+  - msisdn
+  - ssn
+  - bsn
+  - nino
+  - national_id
+  - passport
+  - dob
+  - birthdate
+  - date_of_birth
+  - address
+  - postcode
+  - iban
+  - card_number
+  - first_name
+  - last_name
+  - full_name
+  - surname
+  - geolocation
+  - ip_address
+  - last_ip
+
+special:            # GDPR Art 9 special categories
+  - diagnosis
+  - health_conditions
+  - medical_notes
+  - medical_history
+  - health_record
+  - biometric
+  - fingerprint
+  - ethnicity
+  - religion
+  - gender
+  - sexual_orientation
+  - trade_union

@@ -288,6 +288,24 @@ def _cmd_frameworks(_a: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_init(a: argparse.Namespace) -> int:
+    from compliance_spine.scaffold import next_steps, scaffold_spine
+
+    root = a.path
+    written = scaffold_spine(root, force=a.force)
+    if not written:
+        print(
+            f"init: a spine already exists under {root} (nothing written). "
+            "Re-run with --force to overwrite the starter templates."
+        )
+        return 0
+    for rel in written:
+        print(f"  + {rel}")
+    print()
+    print(next_steps(root))
+    return 0
+
+
 def _cmd_governance(_a: argparse.Namespace) -> int:
     report = governance_report()
     print("Governance report")
@@ -320,6 +338,15 @@ def build_parser() -> argparse.ArgumentParser:
         description="ISEE compliance spine — GDPR + EU AI Act controls for agentic delivery.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    p_init = sub.add_parser(
+        "init", help="scaffold a starter spine/ policy folder into a repo (run this first)"
+    )
+    p_init.add_argument("path", nargs="?", default=".", help="target repo root (default: cwd)")
+    p_init.add_argument(
+        "--force", action="store_true", help="overwrite existing starter templates"
+    )
+    p_init.set_defaults(func=_cmd_init)
 
     sub.add_parser("intent", help="list the never-delegate rules").set_defaults(func=_cmd_intent)
     sub.add_parser("doctor", help="validate intent <-> gate traceability").set_defaults(
