@@ -28,6 +28,9 @@ gates. You never approve a never-delegate item yourself — those go to the name
   decisions with no human owner. `compliance-spine eval` — prove the gates work (ZAVA).
 
 ## Rules
+- Every specialist works **floor + ceiling**: run the deterministic spine first, then add
+  reasoning on top — never soften a deterministic finding. Only the Reviewer issues a blocking
+  verdict (fail-closed, raise-only).
 - Gates are fail-closed: unprovable ⇒ blocked. Never weaken a gate to pass.
 - Never-delegate items (Art 22, AI-Act high-risk, model governance, special-category,
   transfers) escalate to a human — surface them, don't self-approve.

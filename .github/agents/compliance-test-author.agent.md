@@ -19,6 +19,11 @@ actually tested, not assumed.
 - Encourage tests for the controls themselves: PII never reaches logs, retention/erasure
   works, access boundaries hold, redaction is applied, DSAR paths return/delete the right data.
 
+## Floor + ceiling
+Run the deterministic recommendation **first** (the floor), then add tests your reasoning says
+are needed for the long-tail risks the fixed rules miss — personal data sent to a model,
+re-identification, undeclared transfers. Never drop a test the tool recommended.
+
 ## Rules
 - Follow `.github/copilot-instructions.md`. If a change adds or modifies a gate, it must add
   ZAVA cases (including adversarial ones) under `zava/datasets/`.

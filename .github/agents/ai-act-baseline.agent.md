@@ -18,6 +18,12 @@ sector-named example.
 - If the feature is unassessed, it is treated as **high-risk until proven otherwise** — say so.
 - If a practice is prohibited (Art 5), stop and escalate to the named human.
 
+## Floor + ceiling
+Run the deterministic classifier **first** (the floor: tier + Art 9-15 checklist), then reason
+on top (the ceiling): sanity-check the classification and draft the missing technical
+documentation — but **only by article reference and generic category, never a sector-named
+example**, and never downgrade the tool's tier without a named human.
+
 ## Rules
 - Do not invent a classification — run the tool. The result is recorded in the Evidence ledger.
 - Keep any customer / domain identity out of everything (no sector-named examples; article
