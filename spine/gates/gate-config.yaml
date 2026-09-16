@@ -77,3 +77,45 @@ gates:
     severity: high
     build_time: block            # a model/AI change needs validation + docs + a change record
     run_time: block
+
+  consent-default:
+    intent_ref: intent/never-delegate#consent-default
+    severity: high
+    build_time: block            # optional data collection must be opt-in (Art 25(2))
+    run_time: block
+
+  weak-password-hash:
+    intent_ref: intent/never-delegate#weak-password-hash
+    severity: high
+    build_time: block            # Argon2id/bcrypt, never MD5/SHA for credentials (Art 32)
+    run_time: block
+
+  pii-in-url:
+    intent_ref: intent/never-delegate#pii-in-url
+    severity: high
+    build_time: block            # no personal data in URL path/query (Art 5(1)(f), Art 25)
+    run_time: block
+
+  insecure-transport:
+    intent_ref: intent/never-delegate#insecure-transport
+    severity: high
+    build_time: block            # TLS 1.2+ with cert verification (Art 32)
+    run_time: block
+
+  permissive-cors:
+    intent_ref: intent/never-delegate#permissive-cors
+    severity: high
+    build_time: block            # explicit CORS allowlist, never '*' on an API (Art 32)
+    run_time: block
+
+  error-leakage:
+    intent_ref: intent/never-delegate#error-leakage
+    severity: high
+    build_time: block            # no stack traces / internals to the client (Art 5(1)(f))
+    run_time: block
+
+  secret-file-committed:
+    intent_ref: intent/never-delegate#secret-file-committed
+    severity: critical
+    build_time: block            # never commit key/credential files (Art 32)
+    run_time: block

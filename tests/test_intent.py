@@ -9,8 +9,8 @@ from compliance_spine.intent.loader import Finding
 
 def test_parses_full_constitution():
     rules = load_intent()
-    assert len(rules) == 11
-    assert [r.rank for r in rules] == list(range(1, 12))
+    assert len(rules) == 18
+    assert [r.rank for r in rules] == list(range(1, 19))
     slugs = {r.slug for r in rules}
     for expected in (
         "no-pii-in-logs",
@@ -22,6 +22,13 @@ def test_parses_full_constitution():
         "ai-act-risk-tier",
         "pii-access-boundary",
         "model-governance",
+        "consent-default",
+        "weak-password-hash",
+        "pii-in-url",
+        "insecure-transport",
+        "permissive-cors",
+        "error-leakage",
+        "secret-file-committed",
     ):
         assert expected in slugs
 

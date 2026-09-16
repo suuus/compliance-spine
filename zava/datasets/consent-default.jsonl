@@ -1,0 +1,8 @@
+{"id": "v-optout", "expected": "block", "tags": ["analytics"], "change": {"id": "case-v-optout", "files": [], "metadata": {"analytics": true, "consent": "opt_out"}}}
+{"id": "v-none", "expected": "block", "tags": ["telemetry"], "change": {"id": "case-v-none", "files": [], "metadata": {"telemetry": true, "consent": "none"}}}
+{"id": "v-noconsent", "expected": "block", "tags": ["tracking"], "change": {"id": "case-v-noconsent", "files": [], "metadata": {"tracking": true}}}
+{"id": "v-analytics", "expected": "block", "tags": ["analytics"], "change": {"id": "case-v-analytics", "files": [], "metadata": {"analytics": true}}}
+{"id": "c-optin", "expected": "allow", "tags": ["analytics"], "change": {"id": "case-c-optin", "files": [], "metadata": {"analytics": true, "consent": "opt_in"}}}
+{"id": "c-explicit", "expected": "allow", "tags": ["telemetry"], "change": {"id": "case-c-explicit", "files": [], "metadata": {"telemetry": true, "consent": "explicit"}}}
+{"id": "c-off", "expected": "allow", "tags": ["off"], "change": {"id": "case-c-off", "files": [], "metadata": {"analytics": false}}}
+{"id": "c-nocollect", "expected": "allow", "tags": ["none"], "change": {"id": "case-c-nocollect", "files": [], "metadata": {"data_category": "personal", "consent": "none"}}}

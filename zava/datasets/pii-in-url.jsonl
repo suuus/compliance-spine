@@ -1,0 +1,8 @@
+{"id": "v-flask-email", "expected": "block", "tags": ["flask"], "change": {"id": "case-v-flask-email", "files": [{"path": "routes.py", "content": "@app.route(\"/users/<email>\")"}], "metadata": {}}}
+{"id": "v-fastapi-ssn", "expected": "block", "tags": ["fastapi"], "change": {"id": "case-v-fastapi-ssn", "files": [{"path": "routes.py", "content": "@app.get(\"/lookup/{ssn}\")"}], "metadata": {}}}
+{"id": "v-express-phone", "expected": "block", "tags": ["express"], "change": {"id": "case-v-express-phone", "files": [{"path": "routes.js", "content": "app.get('/u/:phone', handler)"}], "metadata": {}}}
+{"id": "v-query-email", "expected": "block", "tags": ["query"], "change": {"id": "case-v-query-email", "files": [{"path": "client.py", "content": "url = f\"https://api.x/search?email={email}\""}], "metadata": {}}}
+{"id": "v-flask-conv", "expected": "block", "tags": ["converter"], "change": {"id": "case-v-flask-conv", "files": [{"path": "routes.py", "content": "@app.route(\"/u/<string:passport>\")"}], "metadata": {}}}
+{"id": "c-userid", "expected": "allow", "tags": ["id"], "change": {"id": "case-c-userid", "files": [{"path": "routes.py", "content": "@app.get(\"/users/{user_id}\")"}], "metadata": {}}}
+{"id": "c-uuid", "expected": "allow", "tags": ["uuid"], "change": {"id": "case-c-uuid", "files": [{"path": "routes.py", "content": "@app.route(\"/users/<uuid:id>\")"}], "metadata": {}}}
+{"id": "c-query-id", "expected": "allow", "tags": ["query"], "change": {"id": "case-c-query-id", "files": [{"path": "client.py", "content": "url = f\"https://api.x/search?id={user_id}\""}], "metadata": {}}}

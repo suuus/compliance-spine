@@ -1,0 +1,8 @@
+{"id": "v-verify-false", "expected": "block", "tags": ["requests"], "change": {"id": "case-v-verify-false", "files": [{"path": "client.py", "content": "r = requests.get(url, verify=False)"}], "metadata": {}}}
+{"id": "v-node-reject", "expected": "block", "tags": ["node"], "change": {"id": "case-v-node-reject", "files": [{"path": "client.js", "content": "const agent = new https.Agent({ rejectUnauthorized: false })"}], "metadata": {}}}
+{"id": "v-unverified", "expected": "block", "tags": ["ssl"], "change": {"id": "case-v-unverified", "files": [{"path": "client.py", "content": "ctx = ssl._create_unverified_context()"}], "metadata": {}}}
+{"id": "v-tls11", "expected": "block", "tags": ["tls"], "change": {"id": "case-v-tls11", "files": [{"path": "server.py", "content": "ctx = SSLContext(PROTOCOL_TLSv1)"}], "metadata": {}}}
+{"id": "v-curl-k", "expected": "block", "tags": ["curl"], "change": {"id": "case-v-curl-k", "files": [{"path": "deploy.py", "content": "os.system('curl -k https://api.example.com/data')"}], "metadata": {}}}
+{"id": "c-verify", "expected": "allow", "tags": ["ok"], "change": {"id": "case-c-verify", "files": [{"path": "client.py", "content": "r = requests.get(url, timeout=5, verify=True)"}], "metadata": {}}}
+{"id": "c-tls13", "expected": "allow", "tags": ["tls"], "change": {"id": "case-c-tls13", "files": [{"path": "server.py", "content": "ctx.minimum_version = ssl.TLSVersion.TLSv1_3"}], "metadata": {}}}
+{"id": "c-normal", "expected": "allow", "tags": ["ok"], "change": {"id": "case-c-normal", "files": [{"path": "client.js", "content": "const r = await fetch(url)"}], "metadata": {}}}

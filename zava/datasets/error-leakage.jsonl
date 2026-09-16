@@ -1,0 +1,7 @@
+{"id": "v-return-tb", "expected": "block", "tags": ["flask"], "change": {"id": "case-v-return-tb", "files": [{"path": "api.py", "content": "return jsonify(error=traceback.format_exc()), 500"}], "metadata": {}}}
+{"id": "v-res-stack", "expected": "block", "tags": ["node"], "change": {"id": "case-v-res-stack", "files": [{"path": "api.js", "content": "res.status(500).send(err.stack)"}], "metadata": {}}}
+{"id": "v-render-tb", "expected": "block", "tags": ["render"], "change": {"id": "case-v-render-tb", "files": [{"path": "api.py", "content": "return render_template('err.html', trace=traceback.format_exc())"}], "metadata": {}}}
+{"id": "v-debug", "expected": "block", "tags": ["debug"], "change": {"id": "case-v-debug", "files": [{"path": "app.py", "content": "app.run(host='0.0.0.0', debug=True)"}], "metadata": {}}}
+{"id": "c-log-tb", "expected": "allow", "tags": ["log"], "change": {"id": "case-c-log-tb", "files": [{"path": "api.py", "content": "logger.error(traceback.format_exc())"}], "metadata": {}}}
+{"id": "c-corr", "expected": "allow", "tags": ["corr"], "change": {"id": "case-c-corr", "files": [{"path": "api.py", "content": "return jsonify(error='internal error', correlation_id=cid), 500"}], "metadata": {}}}
+{"id": "c-log-exc", "expected": "allow", "tags": ["log"], "change": {"id": "case-c-log-exc", "files": [{"path": "api.py", "content": "logger.exception('handler failed')"}], "metadata": {}}}

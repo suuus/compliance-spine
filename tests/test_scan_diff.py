@@ -11,11 +11,17 @@ def _git(*args, cwd):
     subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
 
 
-def test_code_scanning_set_is_the_three_code_gates():
+def test_code_scanning_set():
     assert code_scanning_gate_names() == {
         "no-pii-in-logs",
         "encryption-required",
         "pii-access-boundary",
+        "weak-password-hash",
+        "pii-in-url",
+        "insecure-transport",
+        "permissive-cors",
+        "error-leakage",
+        "secret-file-committed",
     }
 
 

@@ -63,6 +63,40 @@ convenience. This is the constitution the agents inherit. Keep it short, ranked,
    - Enforced by: the ghost-decision detector (`evidence/`)
    - Owner: <name> · Ranked: 11
 
+12. **No optional data collection (analytics, telemetry, tracking) enabled by default without
+   opt-in consent** (privacy by default, GDPR Art 25(2); Art 6/7).
+   - Enforced by: `spine/policies/consent-default.rego`
+   - Owner: <name> · Ranked: 12
+
+13. **No password or credential stored with a weak or fast hash** — use Argon2id/bcrypt, never
+   MD5 or the SHA family (GDPR Art 32).
+   - Enforced by: `spine/policies/weak-password-hash.rego`
+   - Owner: <name> · Ranked: 13
+
+14. **No personal data in URL path segments or query parameters** (they leak into logs, history,
+   and referers; GDPR Art 5(1)(f), Art 25).
+   - Enforced by: `spine/policies/pii-in-url.rego`
+   - Owner: <name> · Ranked: 14
+
+15. **No insecure transport** — no disabled certificate verification and no TLS below 1.2
+   (GDPR Art 32).
+   - Enforced by: `spine/policies/insecure-transport.rego`
+   - Owner: <name> · Ranked: 15
+
+16. **No wildcard CORS origin on an API** — use an explicit allowlist (GDPR Art 32).
+   - Enforced by: `spine/policies/permissive-cors.rego`
+   - Owner: <name> · Ranked: 16
+
+17. **No stack traces, internal errors, or debug output returned to clients** — log server-side
+   against a correlation id (GDPR Art 5(1)(f), Art 32).
+   - Enforced by: `spine/policies/error-leakage.rego`
+   - Owner: <name> · Ranked: 17
+
+18. **No secret or key file committed to source** — keep credentials in a KMS / secrets manager
+   (GDPR Art 32).
+   - Enforced by: `spine/policies/secret-file-committed.rego`
+   - Owner: <name> · Ranked: 18
+
 ---
 
 ## Ranking rule

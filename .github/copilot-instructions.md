@@ -45,8 +45,23 @@ the gates can evaluate it, then run `compliance-spine check`.
 **Purpose limitation (Art 5(1)(b))**
 - Don't read personal data from a component that shouldn't hold it (analytics, reporting, public/edge, logging, marketing). Consume de-identified / aggregated data there, or go through an authorised service.
 
+**Anonymisation vs pseudonymisation**
+- *Anonymisation* is irreversible → out of GDPR scope; use it for records you must retain after an erasure request (financial, audit). Don't call data "anonymised" if re-identification is possible by linkage — apply k-anonymity and test it.
+- *Pseudonymisation* is reversible with a key → still personal data. Keep the key in a KMS, never in the same store as the pseudonymised data.
+
 **Storage limitation (Art 5(1)(e), Art 17)**
-- Every personal-data store declares a retention/TTL and an erasure path. Build real deletion or anonymisation, not just soft-delete.
+- Every personal-data store declares a retention/TTL and an erasure path. Build real deletion or anonymisation, not just soft-delete. Set the TTL at schema-design time, compute `retention_expires_at` at insert, and enforce it with an automated job — never a manual cleanup.
+
+  Sensible retention defaults (tune to your legal basis):
+
+  | Data | Max retention |
+  |---|---|
+  | Auth / audit logs | 12–24 months |
+  | Session / refresh tokens | 30–90 days |
+  | Email / notification logs | 6 months |
+  | Inactive accounts | 12 months after last login → notify → delete |
+  | Payment records | as tax law requires (7–10 years), minimised |
+  | Analytics events | 13 months |
 
 **Lawful basis & consent (Art 6 / 7 / 9)**
 - New processing → declare the basis. Consent must be specific, freely given, and withdrawable — build the withdrawal path. Special-category data (health, biometric, ethnicity, religion, and the other Art 9 categories) needs an Art 9(2) condition, a DPIA, and stricter minimisation.
@@ -55,7 +70,16 @@ the gates can evaluate it, then run `compliance-spine check`.
 - Design for access, rectification, erasure, portability, and objection from the start. Personal data must be findable and deletable by subject id.
 
 **Security (Art 32)**
-- Encrypt personal data at rest and in transit. Least privilege. No secrets in source. Validate and sanitise inputs; use parameterised queries.
+- Encrypt personal data at rest and in transit. Least privilege. Validate and sanitise inputs; use parameterised queries.
+- **Transport:** TLS 1.2+ (prefer 1.3). No plaintext `http://` for personal data, no disabled certificate verification (`verify=False`, `rejectUnauthorized: false`), no TLS 1.0/1.1 or null ciphers.
+- **Password hashing:** Argon2id (preferred) or bcrypt (cost ≥ 12) with a unique per-password salt; store only the hash. Never MD5, SHA-1, or a bare SHA-256 for passwords.
+- **Secrets:** never hardcode keys/tokens/credentials and never commit secret files (`.env`, `*.pem`, `*.key`, `*.pfx`, `*.p12`, `id_rsa`, `secrets/`). Use a KMS / secrets manager, add secret-scanning pre-commit hooks, and `.gitignore` those patterns.
+
+**API design & error handling (Art 5(1)(f), Art 25, Art 32)**
+- Never put personal data in URL path segments or query parameters — they leak into CDN logs, browser history, and referers. Use the request body or an authenticated session.
+- Use opaque identifiers (UUIDs) as public resource ids, never sequential integers. Take the acting user's identity from the authenticated token, not the request body, and check ownership on every resource (`if resource.owner != current_user: 403`).
+- Rate-limit sensitive endpoints (login, export, password reset). Don't set `Access-Control-Allow-Origin: *` on authenticated APIs — use an explicit allowlist.
+- Return generic errors (RFC 7807 problem details); never expose stack traces, internal paths, DB errors, or personal data in a response. Log the detail server-side against a correlation id and return only the id.
 
 **Automated decisions (Art 22)**
 - Solely-automated + significant effect → add human intervention and a contestable explanation. Record decision inputs for contestability (without logging raw PII).
@@ -74,7 +98,7 @@ the gates can evaluate it, then run `compliance-spine check`.
 - Never present model output as a decision without the human oversight the tier requires.
 
 ## Writing tests
-- Use synthetic / clearly-fake data only. Never real users, emails, ids, or tokens; never copy production data into fixtures.
+- Use synthetic / clearly-fake data only (Faker, Bogus, factory_boy; `@example.com` addresses). Never real users, emails, ids, or tokens; never copy production data into fixtures, and never restore a production backup to dev/staging/CI without scrubbing PII first.
 - Test the privacy controls themselves: PII never reaches logs, retention/erasure works, access boundaries hold, redaction is applied, and DSAR paths return or delete the right data.
 - If the spine is present, a change that adds or modifies a gate must add ZAVA cases (including adversarial ones) and keep recall high with a low false-positive rate.
 
@@ -95,5 +119,8 @@ the gates can evaluate it, then run `compliance-spine check`.
 - Keep any customer or domain identity out of code, docs, tests, and commit messages. The leak-guard enforces this — keep it green.
 
 ---
+*Sources:* GDPR and the EU AI Act, plus engineering practice distilled from CNIL developer
+guidance, ENISA, OWASP, and NIST.
+
 *Reusable:* drop this file into any repository's `.github/` to make Copilot GDPR/AI-Act-aware
 there too. Pair it with the compliance-spine to move from *instructions* to *enforced*.

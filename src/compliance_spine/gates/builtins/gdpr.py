@@ -114,6 +114,33 @@ class CrossBorderTransferGate(Gate):
         return (not findings, findings, subject)
 
 
+CONSENT_VALID = {"explicit", "opt_in"}
+
+
+class ConsentDefaultGate(Gate):
+    """Art 25(2) + Art 6/7: optional data collection (analytics, telemetry, tracking) must be
+    off by default and opt-in. Enabling it without explicit / opt-in consent fails closed."""
+
+    name = "consent-default"
+
+    def check(self, change, spec: GateSpec) -> tuple[bool, list[str], dict]:
+        m = _meta(change)
+        subject = {"change": change.id, "data_category": change.data_category}
+        if not any(m.get(k) for k in ("analytics", "telemetry", "tracking")):
+            return True, [], subject
+        if m.get("consent") in CONSENT_VALID:
+            return True, [], subject
+        detail = f"declared consent '{m.get('consent')}'" if m.get("consent") else "no consent"
+        return (
+            False,
+            [
+                f"optional data collection enabled by default with {detail} — "
+                "require opt-in consent (Art 25(2))"
+            ],
+            subject,
+        )
+
+
 # Hardcoded-secret patterns (personal-adjacent security, Art 32).
 _SECRET_PATTERNS = (
     ("aws access key id", re.compile(r"AKIA[0-9A-Z]{16}")),

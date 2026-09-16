@@ -1,0 +1,7 @@
+{"id": "v-header-star", "expected": "block", "tags": ["header"], "change": {"id": "case-v-header-star", "files": [{"path": "api.py", "content": "resp.headers[\"Access-Control-Allow-Origin\"] = \"*\""}], "metadata": {}}}
+{"id": "v-flask-cors", "expected": "block", "tags": ["flask"], "change": {"id": "case-v-flask-cors", "files": [{"path": "api.py", "content": "CORS(app, origins=\"*\")"}], "metadata": {}}}
+{"id": "v-fastapi", "expected": "block", "tags": ["fastapi"], "change": {"id": "case-v-fastapi", "files": [{"path": "api.py", "content": "app.add_middleware(CORSMiddleware, allow_origins=[\"*\"])"}], "metadata": {}}}
+{"id": "v-express", "expected": "block", "tags": ["express"], "change": {"id": "case-v-express", "files": [{"path": "api.js", "content": "app.use(cors({ origin: '*' }))"}], "metadata": {}}}
+{"id": "c-explicit", "expected": "allow", "tags": ["header"], "change": {"id": "case-c-explicit", "files": [{"path": "api.py", "content": "resp.headers[\"Access-Control-Allow-Origin\"] = \"https://app.example.com\""}], "metadata": {}}}
+{"id": "c-list", "expected": "allow", "tags": ["fastapi"], "change": {"id": "case-c-list", "files": [{"path": "api.py", "content": "app.add_middleware(CORSMiddleware, allow_origins=[\"https://app.example.com\"])"}], "metadata": {}}}
+{"id": "c-express", "expected": "allow", "tags": ["express"], "change": {"id": "case-c-express", "files": [{"path": "api.js", "content": "app.use(cors({ origin: 'https://app.example.com' }))"}], "metadata": {}}}
