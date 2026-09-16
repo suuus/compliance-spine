@@ -25,7 +25,7 @@ from typing import Protocol
 from compliance_spine import __version__ as SPINE_VERSION
 from compliance_spine.change import Change
 from compliance_spine.evidence.ledger import Ledger
-from compliance_spine.evidence.record import DecisionRecord
+from compliance_spine.evidence.record import DecisionRecord, finding_at
 from compliance_spine.gates.base import ALLOW, BLOCK, ESCALATE, worst
 from compliance_spine.gates.runner import EnforcementResult, enforce
 
@@ -244,6 +244,7 @@ class LayeredReviewer:
                 subject={"change": change.id, "note": f.rationale, "kind": f.kind},
                 confidence=f.confidence,
                 spine_version=SPINE_VERSION,
+                findings=[finding_at(f.location, f.rationale)],
             ))
             finding_ids.append(record["id"])
         # one combined verdict record

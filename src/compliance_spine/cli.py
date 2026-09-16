@@ -117,12 +117,19 @@ def _cmd_evidence(a: argparse.Namespace) -> int:
         actor = rec.get("actor", {})
         owner = (rec.get("owner") or {}).get("human_id", "")
         subject = rec.get("subject", {})
+        findings = rec.get("findings") or []
         print(
             f"{rec['id']}  {rec['ts']}  {rec['action']:9} {rec['severity']:8} "
             f"{actor.get('type')}:{actor.get('id')}  {rec['rule_id']}  "
             f"change={subject.get('change')}"
             + (f"  owner={owner}" if owner else "")
+            + (f"  ({len(findings)} finding{'s' if len(findings) != 1 else ''})"
+               if findings and not a.detail else "")
         )
+        if a.detail:
+            for f in findings:
+                loc = f"{f['file']}:{f['line']}" if f.get("file") else "(no location)"
+                print(f"      · {loc}: {f['message']}")
     return 0
 
 
@@ -377,6 +384,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_ev = sub.add_parser("evidence", help="show recent evidence records")
     p_ev.add_argument("--limit", type=int, default=20)
+    p_ev.add_argument(
+        "--detail", action="store_true", help="show each record's findings (file:line: message)"
+    )
     p_ev.set_defaults(func=_cmd_evidence)
 
     sub.add_parser("verify", help="verify the evidence hash-chain").set_defaults(func=_cmd_verify)

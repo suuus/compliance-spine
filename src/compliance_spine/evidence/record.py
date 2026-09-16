@@ -7,6 +7,7 @@ against it, so the code and the published schema cannot drift.
 from __future__ import annotations
 
 import json
+import re
 import secrets
 from dataclasses import dataclass, field
 from datetime import UTC
@@ -28,6 +29,34 @@ def _validator() -> Draft7Validator:
 
 def new_id() -> str:
     return "evt_" + secrets.token_hex(4)
+
+
+_LOCATED_RE = re.compile(r"^(?P<file>[^\s:]+):(?P<line>\d+):\s*(?P<message>.*)$")
+_LOCATION_RE = re.compile(r"^(?P<file>[^\s:]+):(?P<line>\d+)$")
+
+
+def structure_findings(findings) -> list[dict]:
+    """Turn gate finding strings (``path:line: message``) into structured
+    ``{file, line, message}`` entries, so an evidence record points back at its source.
+    Findings without a location (e.g. declaration gates) keep ``file``/``line`` = None.
+    """
+    out: list[dict] = []
+    for f in findings:
+        text = str(f)
+        m = _LOCATED_RE.match(text)
+        if m:
+            out.append({"file": m["file"], "line": int(m["line"]), "message": m["message"]})
+        else:
+            out.append({"file": None, "line": None, "message": text})
+    return out
+
+
+def finding_at(location: str, message: str) -> dict:
+    """Structured finding from a ``path:line`` location + message (assessor findings)."""
+    m = _LOCATION_RE.match(location or "")
+    if m:
+        return {"file": m["file"], "line": int(m["line"]), "message": message}
+    return {"file": location or None, "line": None, "message": message}
 
 
 def record_hash(record: dict) -> str:
@@ -54,6 +83,7 @@ class DecisionRecord:
     artifacts: list[str] | None = None
     spine_version: str | None = None
     confidence: float | None = None
+    findings: list[dict] | None = None
     prev_hash: str = GENESIS_PREV
 
     def to_dict(self) -> dict:
@@ -83,6 +113,8 @@ class DecisionRecord:
             data["spine_version"] = self.spine_version
         if self.confidence is not None:
             data["confidence"] = self.confidence
+        if self.findings:
+            data["findings"] = self.findings
         return data
 
     def validate(self) -> None:

@@ -57,7 +57,7 @@ compliance-spine review CHANGE.json    # quality-reviewer: verdict (+ Evidence)
 compliance-spine ai-act CHANGE.json    # ai-act-baseline: risk tier + Art 9-15 checklist
 compliance-spine override CHANGE.json GATE --reason R \
     --signer spine_author:you --signer dpo:them --signature SIG   # human-in-the-loop
-compliance-spine evidence          # recent Evidence records
+compliance-spine evidence          # recent Evidence records (--detail shows each finding's file:line)
 compliance-spine verify            # verify the hash-chain (tamper detection)
 compliance-spine ghosts            # decisions with no named human owner
 compliance-spine eval              # ZAVA: recall / false-positive-rate per gate

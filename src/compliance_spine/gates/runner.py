@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from compliance_spine import __version__ as SPINE_VERSION
 from compliance_spine.change import Change
 from compliance_spine.evidence.ledger import Ledger
-from compliance_spine.evidence.record import DecisionRecord
+from compliance_spine.evidence.record import DecisionRecord, structure_findings
 from compliance_spine.gates.base import ALLOW, BLOCK, HALT, GateResult, worst
 from compliance_spine.gates.registry import build_gates
 from compliance_spine.overrides import OverrideStore
@@ -25,6 +25,7 @@ def emit(
     actor: dict,
     owner: dict | None = None,
     override: dict | None = None,
+    findings: tuple[str, ...] = (),
 ) -> dict:
     record = DecisionRecord(
         action=action,
@@ -41,6 +42,7 @@ def emit(
         owner=owner,
         override=override,
         spine_version=SPINE_VERSION,
+        findings=structure_findings(findings) or None,
     )
     return ledger.append(record)
 
@@ -106,6 +108,7 @@ def enforce(
                     actor={"type": "human", "id": active.human_id},
                     owner=active.owner,
                     override=active.to_evidence(),
+                    findings=res.findings,
                 )
             applied.append(spec.name)
             res = replace(
@@ -116,6 +119,7 @@ def enforce(
                 ledger, change, res.gate, res.intent_ref, res.severity,
                 action=res.decision,
                 actor={"type": "gate", "id": res.gate},
+                findings=res.findings,
             )
         results.append(res)
 
