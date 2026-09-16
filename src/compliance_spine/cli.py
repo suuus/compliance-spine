@@ -253,6 +253,28 @@ def _cmd_assess_eval(a: argparse.Namespace) -> int:
     return 0 if report.passed else 1
 
 
+def _cmd_record_finding(a: argparse.Namespace) -> int:
+    from compliance_spine.learning import record_finding
+
+    rec = record_finding(
+        a.kind,
+        a.message,
+        change=a.change,
+        file=a.file,
+        line=a.line,
+        confidence=a.confidence,
+        severity=a.severity,
+        model=a.model,
+    )
+    loc = f" @ {a.file}:{a.line}" if a.file else ""
+    print(f"recorded {rec['id']}  llm/{a.kind}  conf={a.confidence}  change={a.change}{loc}")
+    print(
+        f"  adjudicate: compliance-spine adjudicate {rec['id']} "
+        "--outcome confirmed|dismissed --human <you> --signature <sig>"
+    )
+    return 0
+
+
 def _cmd_adjudicate(a: argparse.Namespace) -> int:
     from compliance_spine.learning import adjudicate
 
@@ -457,6 +479,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_ae.add_argument("--recall-min", dest="recall_min", type=float, default=None)
     p_ae.add_argument("--fpr-max", dest="fpr_max", type=float, default=None)
     p_ae.set_defaults(func=_cmd_assess_eval)
+
+    p_rf = sub.add_parser(
+        "record-finding",
+        help="record a reasoned (non-deterministic) finding as its own adjudicable ledger event",
+    )
+    p_rf.add_argument("--kind", required=True, help="finding kind, e.g. automated-decision")
+    p_rf.add_argument("--message", required=True, help="the finding / rationale")
+    p_rf.add_argument("--file", default=None, help="source file the finding points at")
+    p_rf.add_argument("--line", type=int, default=None, help="source line")
+    p_rf.add_argument("--confidence", type=float, default=0.6, help="0-1 (default 0.6)")
+    p_rf.add_argument("--severity", default="info", help="info|medium|high (default info)")
+    p_rf.add_argument("--change", default="reasoning-review", help="subject / change id")
+    p_rf.add_argument("--model", default="reasoning", help="the reasoning source (model/agent id)")
+    p_rf.set_defaults(func=_cmd_record_finding)
 
     p_adj = sub.add_parser("adjudicate", help="record a human decision on an assessor finding")
     p_adj.add_argument("finding_id", metavar="FINDING_ID")

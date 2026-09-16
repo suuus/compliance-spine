@@ -101,6 +101,37 @@ def run_evals() -> dict[str, Any]:
 
 
 @server.tool()
+def record_finding(
+    kind: str,
+    message: str,
+    file: str | None = None,
+    line: int | None = None,
+    confidence: float = 0.6,
+    severity: str = "info",
+    change: str = "reasoning-review",
+    model: str = "reasoning",
+) -> dict[str, Any]:
+    """Record one reasoned (non-deterministic) finding as its own adjudicable Evidence event.
+
+    Call this per finding when you assess with your own reasoning, so each becomes a real
+    ``evt_*`` ledger id (not just a report label) that a human can pass to ``adjudicate``.
+    Returns the ledger id and the finding's structured location.
+    """
+    from compliance_spine.learning import record_finding as _record
+
+    rec = _record(
+        kind, message, change=change, file=file, line=line,
+        confidence=confidence, severity=severity, model=model,
+    )
+    return {
+        "id": rec["id"],
+        "rule_id": rec["rule_id"],
+        "confidence": confidence,
+        "finding": {"file": file, "line": line, "message": message},
+    }
+
+
+@server.tool()
 def list_intent() -> list[dict[str, Any]]:
     """List the never-delegate rules (Intent)."""
     return [

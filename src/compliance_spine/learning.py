@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from compliance_spine import __version__ as SPINE_VERSION
+from compliance_spine.change import canonical_json, sha256_hex
 from compliance_spine.evidence.ledger import Ledger
 from compliance_spine.evidence.record import DecisionRecord
 
@@ -21,6 +22,45 @@ _OUTCOMES = {"confirmed", "dismissed"}
 
 def _by_id(records: list[dict], rid: str) -> dict | None:
     return next((r for r in records if r.get("id") == rid), None)
+
+
+def record_finding(
+    kind: str,
+    message: str,
+    *,
+    change: str = "reasoning-review",
+    file: str | None = None,
+    line: int | None = None,
+    confidence: float = 0.6,
+    severity: str = "info",
+    model: str = "reasoning",
+    ledger: Ledger | None = None,
+) -> dict:
+    """Record one non-deterministic (reasoned) finding as its **own** adjudicable ledger event.
+
+    The offline assessor's findings already get individual ``evt_*`` ids via ``llm-review``; this
+    is the same for a *reasoning* agent (a real model) — so an ``ND-*`` report label becomes a
+    real ledger id that can be passed straight to :func:`adjudicate`. Returns the stored record.
+    """
+    ledger = ledger if ledger is not None else Ledger()
+    inputs_hash = sha256_hex(
+        canonical_json(
+            {"kind": kind, "message": message, "file": file, "line": line, "change": change}
+        )
+    )
+    record = DecisionRecord(
+        action="emit",
+        rule_id=f"llm/{kind}",
+        intent_ref="advisory/reasoning-review",
+        severity=severity,
+        inputs_hash=inputs_hash,
+        actor={"type": "llm", "id": model},
+        subject={"change": change, "kind": kind, "note": message},
+        confidence=confidence,
+        findings=[{"file": file, "line": line, "message": message}],
+        spine_version=SPINE_VERSION,
+    )
+    return ledger.append(record)
 
 
 def adjudicate(

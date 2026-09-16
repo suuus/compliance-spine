@@ -49,7 +49,19 @@ Open a Copilot session in the repo and invoke the callable agents:
 /agent compliance-advisor      → "How do I fix the PII-in-logs findings safely?"
 ```
 Or call the MCP tools directly: `check_change`, `review`, `classify_ai_act_risk`, `scan_ghosts`,
-`verify_ledger`, `run_evals`, `recommend_tests`, `advise`, `list_intent`.
+`verify_ledger`, `run_evals`, `recommend_tests`, `advise`, `record_finding`, `list_intent`.
+
+**Give each reasoned finding its own ledger id.** The offline assessor's findings already get
+individual `evt_*` ids via `llm-review`. When *you* (or an agent) assess with reasoning, record
+each finding so it is individually adjudicable instead of a report-only `ND-*` label:
+```bash
+compliance-spine record-finding --kind automated-decision \
+    --message "risk engine auto-declines with no human path (Art 22)" \
+    --file risk-service/src/services/riskCalculationService.js --line 116 \
+    --confidence 0.8 --severity high --change my-assessment
+# -> recorded evt_2dee7325 … then: compliance-spine adjudicate evt_2dee7325 --outcome …
+```
+(The `compliance-reviewer` agent does this automatically and cites the `evt_*` id.)
 
 ## 5. Deep, per-change assessment (a declared change → **records evidence**)
 Write a `change.json` (see [`examples/`](../examples)) — the files plus a `metadata` block declaring
@@ -75,7 +87,7 @@ traceable to source. The ledger lives at `evidence/ledger/` (keep it out of git;
 gitignores it).
 
 ## 7. Adjudicate ceiling findings (human-in-the-loop + learning)
-Take an `evt_…` id from step 3/4:
+Take an `evt_…` id from step 3/4 (`llm-review` findings, or a `record-finding` you logged):
 ```bash
 compliance-spine adjudicate <FINDING_ID> --outcome confirmed \
     --human "Jordan Lee (DPO)" --signature <sig> --reason "real Art 22 gap"

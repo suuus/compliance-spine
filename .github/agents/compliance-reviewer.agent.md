@@ -29,6 +29,15 @@ fail-closed:
    You may only **raise** the verdict, never lower it.
 4. Label clearly: the gates' result is deterministic; your added findings are your (advisory)
    assessment. Surface both, with your rationale.
+5. **Record each reasoned finding to the ledger** so it is individually adjudicable — do not
+   leave it as a report-only label. For every non-deterministic finding, call `record_finding`
+   (MCP) or run:
+   ```
+   compliance-spine record-finding --kind <slug> --message "<what + why + article>" \
+       --file <path> --line <n> --confidence <0-1> --severity <info|medium|high> --change <id>
+   ```
+   Cite the returned `evt_*` id in your report (not an `ND-*` label), and tell the human they can
+   `compliance-spine adjudicate <evt_*> --outcome confirmed|dismissed …` each one.
 
 ## Non-negotiable rules
 - The gates are **fail-closed**. If a gate **blocks** or **escalates**, do not approve — state

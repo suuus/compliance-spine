@@ -70,6 +70,7 @@ compliance-spine scan-diff --staged                   # code gates on the staged
 compliance-spine llm-review --base origin/main        # floor (gates) ∪ ceiling (assessor) on a diff
 compliance-spine scorecard                            # recall lift vs. gates-only
 compliance-spine assess-eval                          # ZAVA on the assessor: its own recall / precision
+compliance-spine record-finding --kind K --message "..." --file f --line N   # reasoned finding -> ledger evt_*
 compliance-spine adjudicate FINDING_ID --outcome confirmed --human you --signature s
 compliance-spine learn                                # findings: confirmed / dismissed / pending
 ```
@@ -85,7 +86,7 @@ missing.
 ```bash
 compliance-spine-mcp        # stdio transport; tools: check_change, advise, review,
                             # recommend_tests, classify_ai_act_risk, verify_ledger,
-                            # scan_ghosts, run_evals, list_intent
+                            # scan_ghosts, run_evals, record_finding, list_intent
 ```
 The MCP server needs the **`[mcp]` extra** (`pip install "compliance-spine[mcp]"`) — without it
 `compliance-spine-mcp` exits with "MCP SDK not installed" and the server silently won't load.
