@@ -439,8 +439,9 @@ The spine is a Python package (the engine) + a `spine/` folder (your policy) + g
 3. **Turn on enforcement — any or all of three layers:**
    - **Local** — add a pre-commit hook running `compliance-spine scan-diff --staged`.
    - **CI** — copy `.github/workflows/compliance-gate.yml` as a required PR check (fail-closed).
-   - **Copilot-native** — copy `.github/agents/*.agent.md` + `.github/copilot-instructions.md`,
-     and register the MCP server (`.mcp.json` → `compliance-spine-mcp`).
+   - **Copilot-native** — copy `.github/agents/*.agent.md`, `.github/skills/gdpr-ai-act-compliance/`,
+     `.github/instructions/`, and `.github/copilot-instructions.md`, and register the MCP server
+     (`.mcp.json` → `compliance-spine-mcp`).
 4. **Use it.**
    ```bash
    compliance-spine check change.json            # gate a described change (see examples/)

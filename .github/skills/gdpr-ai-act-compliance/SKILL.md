@@ -94,6 +94,12 @@ a KMS, separate from the data.
 **Data subject rights (Art 15–22).** Design for access, rectification, erasure, portability, and
 objection from the start — findable and deletable by subject id.
 
+**Testing.** Synthetic / fake data only (Faker, factory_boy, `@example.com`); never production data
+in dev/staging/CI, and never restore a prod backup without scrubbing PII first. Test the privacy
+controls themselves — PII never reaches logs, retention/erasure works, access boundaries hold, DSAR
+paths return or delete the right data. A change that adds or modifies a gate must add ZAVA cases
+(including adversarial ones) and keep recall high with a low false-positive rate.
+
 ## EU AI Act — when a change adds or uses an AI feature
 
 - Classify the risk tier; if unassessed, treat as **high-risk until proven otherwise**.
