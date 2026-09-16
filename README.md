@@ -9,6 +9,8 @@
 > **Not legal advice.** This agent *assists and evidences* compliance; it does not
 > certify it. A human owner (DPO / privacy engineer / legal) signs off. See
 > [Boundaries](#boundaries--honest-limits).
+>
+> **New here? Start with the plain-English [EXPLAINER](./EXPLAINER.md).**
 
 ---
 
