@@ -1,0 +1,7 @@
+# Extra paths scan-diff skips, on top of the built-in defaults
+# (tests/, zava/, docs/, examples/, *.md, lockfiles — see gitdiff.DEFAULT_SCAN_EXCLUDES).
+# One git-style glob or directory prefix per line.
+
+# The gates' own source defines detection patterns — regexes that necessarily contain
+# strings that look like violations (e.g. "PROTOCOL_TLSv1"). Don't scan the scanner.
+src/compliance_spine/gates/

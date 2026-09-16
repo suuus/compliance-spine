@@ -4,7 +4,7 @@
 
 > Status: **running implementation** — installable Python package (`compliance_spine`)
 > with a CLI, an MCP server, 17 fail-closed gates, 4 deterministic agents (also callable as
-> GitHub Copilot `/agent` agents), a hash-chained Evidence ledger, a 155-case ZAVA suite
+> GitHub Copilot `/agent` agents), a hash-chained Evidence ledger, a 157-case ZAVA suite
 > (recall 1.00 / FPR 0.00), and an LLM layer — a layered reviewer, a recall scorecard, and a
 > learning loop — that catches the long tail without weakening the fail-closed floor. See
 > [GETTING-STARTED](./GETTING-STARTED.md) to install and run `./scripts/demo.sh`.

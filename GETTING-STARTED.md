@@ -103,7 +103,7 @@ for unattended CI or an independent reviewer.
   secret-file-committed.
 - **Evidence** — schema-validated, hash-chained ledger + ghost-decision detector.
 - **4 agents** — coding-advisor, test-author, quality-reviewer, ai-act-baseline.
-- **ZAVA** — 155-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
+- **ZAVA** — 157-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
 - **LLM layer** — a layered reviewer (deterministic gates as the fail-closed floor ∪ a pluggable
   assessor as the ceiling), a recall scorecard, an assessor eval (`assess-eval`), metadata
   propose/confirm, and a learning loop (`adjudicate` / `learn`) that turns confirmed findings

@@ -6,11 +6,57 @@ gates stay not-applicable until a change declares its context.
 
 from __future__ import annotations
 
+import fnmatch
 import subprocess
 
 from compliance_spine.change import Change, ChangeFile
 
 _MAX_BYTES = 1_000_000
+
+# Paths scan-diff never treats as production source: test fixtures, eval datasets, docs, and
+# sample inputs all legitimately contain example violations, so scanning them is a category
+# error (it would fail a PR because a doc quotes `password = "..."`). Extend per-repo via a
+# git-style ``spine/scan-ignore`` file.
+DEFAULT_SCAN_EXCLUDES: tuple[str, ...] = (
+    "tests/",
+    "test/",
+    "spec/",
+    "zava/",
+    "docs/",
+    "examples/",
+    "*.md",
+    "*.lock",
+    "*.min.js",
+    "*.min.css",
+    "*.map",
+    "*.snap",
+)
+
+
+def _load_scan_excludes() -> list[str]:
+    patterns = list(DEFAULT_SCAN_EXCLUDES)
+    try:
+        from compliance_spine.config import paths
+
+        f = paths().root / "spine" / "scan-ignore"
+        if f.is_file():
+            for line in f.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    patterns.append(line)
+    except Exception:  # noqa: BLE001 — a missing/broken ignore file must not break scanning
+        pass
+    return patterns
+
+
+def _is_excluded(path: str, patterns: list[str]) -> bool:
+    for pat in patterns:
+        if pat.endswith("/"):
+            if path == pat[:-1] or path.startswith(pat) or f"/{pat}" in f"/{path}":
+                return True
+        elif fnmatch.fnmatch(path, pat) or fnmatch.fnmatch(path, f"*/{pat}"):
+            return True
+    return False
 
 
 def _git_text(*args: str) -> str:
@@ -62,7 +108,10 @@ def collect_change(staged: bool = True, base: str | None = None, head: str = "HE
         change_id = "staged"
 
     pairs: list[tuple[str, str]] = []
+    excludes = _load_scan_excludes()
     for path in _changed_paths(name_status):
+        if _is_excluded(path, excludes):
+            continue
         text = _decode(_git_bytes("show", ref(path)))
         if text is not None:
             pairs.append((path, text))

@@ -148,7 +148,7 @@ _RESP_CTX = (
     r"return\b|res\.|resp\.|response\.|reply\.|\bsend\b|jsonify\b|render\b|\bwrite\b|getWriter"
 )
 _LEAK = re.compile(
-    rf"(?:{_RESP_CTX})[^\n]*(traceback\.format_exc|\.format_exc\(|\bstack\b|printStackTrace"
+    rf"(?:{_RESP_CTX})[^\n]*(traceback\.format_exc|\.format_exc\(|\.stack\b|printStackTrace"
     r"|\bstacktrace\b)",
     re.I,
 )
