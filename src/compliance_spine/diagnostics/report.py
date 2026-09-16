@@ -63,6 +63,14 @@ def diagnose(run_evals: bool = True) -> Diagnostic:
     findings = validate_traceability(registry, config)
     trace_errors = sum(1 for f in findings if f.level == "error")
     implemented = [n for n in specs if n in GATE_CLASSES]
+    gates_cfg = config.get("gates", {}) or {}
+    covered = {
+        rule.slug
+        for name in specs
+        if (rule := registry.resolve((gates_cfg.get(name) or {}).get("intent_ref", "")))
+        is not None
+    }
+    uncovered = [r.slug for r in registry.rules if r.slug not in covered]
     structure = Dimension(
         "Structure",
         len(implemented) == len(specs) and trace_errors == 0,
@@ -70,8 +78,14 @@ def diagnose(run_evals: bool = True) -> Diagnostic:
             f"gates configured: {len(specs)}",
             f"gates implemented: {len(implemented)}/{len(specs)}",
             f"traceability errors: {trace_errors}",
+            f"principles with an enforcing gate: {len(covered)}/{len(registry.rules)}",
         ],
     )
+    if uncovered:
+        structure.signals.append(
+            "principles enforced without a dedicated gate "
+            f"(detector/agents): {', '.join(uncovered)}"
+        )
 
     execution = Dimension(
         "Execution",
