@@ -419,6 +419,38 @@ compliance-spine/
   not frozen.
 - A control the agent can't verify must **fail loud or escalate**, never pass silently.
 
+## Adopt this in your project
+
+The spine is a Python package (the engine) + a `spine/` folder (your policy) + glue you copy in.
+
+1. **Install the engine.**
+   ```bash
+   pip install "compliance-spine[zava,mcp] @ git+https://github.com/suuus/compliance-spine"
+   ```
+2. **Drop a `spine/` folder into your repo root and edit four files** — this is the real work:
+   - `spine/intent/never-delegate.md` — decisions a human must always own (your DPO signs off).
+   - `spine/gates/gate-config.yaml` — which gates are on, severity, circuit-breaker.
+   - `spine/data-catalogue.yaml` — *your* personal / special-category field names.
+   - `spine/access-boundaries.yaml` — *your* components that must never touch raw PII.
+
+   Also copy `evidence/schema/` (the record contract). The spine finds its root by walking up
+   for `spine/` + `pyproject.toml`; **non-Python repos** just set `COMPLIANCE_SPINE_ROOT=/path/to/repo`
+   (it's authoritative — no `pyproject.toml` needed).
+3. **Turn on enforcement — any or all of three layers:**
+   - **Local** — add a pre-commit hook running `compliance-spine scan-diff --staged`.
+   - **CI** — copy `.github/workflows/compliance-gate.yml` as a required PR check (fail-closed).
+   - **Copilot-native** — copy `.github/agents/*.agent.md` + `.github/copilot-instructions.md`,
+     and register the MCP server (`.mcp.json` → `compliance-spine-mcp`).
+4. **Use it.**
+   ```bash
+   compliance-spine check change.json            # gate a described change (see examples/)
+   compliance-spine scan-diff --base origin/main # gate a real git diff
+   compliance-spine llm-review change.json       # floor (gates) ∪ ceiling (your Copilot model)
+   compliance-spine eval && compliance-spine verify   # prove controls work + ledger intact
+   ```
+
+See [GETTING-STARTED.md](./GETTING-STARTED.md) for the full walkthrough.
+
 ## 14. References (verify current versions)
 
 - GDPR — Regulation (EU) 2016/679 (esp. Art 5, 6, 9, 15–22, 25, 30, 32–35, Chap V).

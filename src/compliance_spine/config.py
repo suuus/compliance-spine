@@ -3,8 +3,11 @@
 The spine governs a repository, so everything is resolved relative to a *root* that
 contains ``spine/``. Resolution order:
 
-1. ``$COMPLIANCE_SPINE_ROOT`` if set.
-2. Walk upward from the current working directory for a dir with ``spine/`` + ``pyproject.toml``.
+1. An explicitly pinned root — the ``start`` argument or ``$COMPLIANCE_SPINE_ROOT`` — is
+   authoritative and only has to contain ``spine/``, so the spine drops into any project
+   (Python or not) without needing a ``pyproject.toml`` marker.
+2. Otherwise walk upward from the current working directory for a dir with ``spine/`` +
+   ``pyproject.toml``.
 3. Fall back to the installed package's repository root.
 """
 
@@ -17,8 +20,16 @@ from pathlib import Path
 
 
 def find_root(start: str | os.PathLike[str] | None = None) -> Path:
-    env = os.environ.get("COMPLIANCE_SPINE_ROOT")
-    base = Path(start or env or Path.cwd()).resolve()
+    # A pinned root (argument or $COMPLIANCE_SPINE_ROOT) is authoritative: it lets the spine
+    # govern a non-Python project, which has no pyproject.toml to anchor auto-discovery.
+    pinned = start if start is not None else os.environ.get("COMPLIANCE_SPINE_ROOT")
+    if pinned is not None:
+        root = Path(pinned).resolve()
+        if (root / "spine").is_dir():
+            return root
+        raise FileNotFoundError(f"pinned spine root {root} has no 'spine/' directory")
+    # Otherwise auto-discover: walk up for a repo that carries the spine + a Python manifest.
+    base = Path.cwd().resolve()
     for d in (base, *base.parents):
         if (d / "spine").is_dir() and (d / "pyproject.toml").is_file():
             return d
