@@ -24,9 +24,15 @@ compliance-spine scan-diff --staged    # code gates on the staged diff (pre-comm
 compliance-spine llm-review change.json # gates (floor) ∪ your model (ceiling), fail-closed
 compliance-spine advise | review        # GDPR-aware coding guidance / diff review
 ```
-Or, in the Copilot app, call the agents: `/agent Compliance Reviewer` (or *Advisor / Test Author /
-AI Act Baseline*), or the `compliance-spine` MCP tools (`check_change`, `review`,
-`classify_ai_act_risk`). The LLM proposes and assesses; the gates dispose; a human owns the calls.
+Or, in the Copilot app, call the agents with `/agent` — **Compliance Reviewer**, **Compliance
+Advisor**, **Compliance Test Author**, **AI Act Baseline**, or the **Compliance Spine**
+orchestrator — or the MCP tools (`check_change`, `review`, `classify_ai_act_risk`, `run_evals`,
+`verify_ledger`). The LLM proposes and assesses; the gates dispose; a human owns the calls.
+
+**Prerequisites for the hooks above:** install the engine (`pip install compliance-spine`),
+register the MCP server (`.mcp.json` → `compliance-spine-mcp`), and keep the agents in
+`.github/agents/`. This skill *routes* to them and sets the rules; the gates, the evidence ledger,
+and ZAVA are what actually enforce and prove.
 
 ## Hard stops — never do these
 
