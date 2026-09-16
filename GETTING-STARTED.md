@@ -78,6 +78,9 @@ compliance context (data category, lawful basis, retention, transfers, AI featur
 the gates fire on what a change declares and fail closed when a required attestation is
 missing.
 
+> For the full command-by-command flow — assess a repo, run the floor + LLM ceiling, and collect
+> auditable evidence — see [docs/ASSESSING.md](./docs/ASSESSING.md).
+
 ## MCP (for the GitHub Copilot App / any MCP client)
 ```bash
 compliance-spine-mcp        # stdio transport; tools: check_change, advise, review,

@@ -165,6 +165,7 @@ ts:           2026-01-01T03:14:00Z          # timestamp
 actor:        { type: agent|human, id }     # who/what acted
 action:       allow | block | escalate | override | emit
 subject:      { change: "PR#123", data_category, ai_feature }
+findings:     [ { file, line, message } ]   # what triggered it — traceable to source
 rule_id:      spine/policies/no-pii-in-logs # the spine rule applied
 intent_ref:   intent/never-delegate#no-pii-in-logs   # traces up to Intent
 severity:     critical | high | medium
@@ -176,8 +177,10 @@ prev_hash:    sha256:…                        # hash-chain → tamper-evident
 ```
 
 Four properties make it real:
-1. **Traceability chain** — every enforced decision links *gate → spine rule → Intent
-   principle → human author*. A decision that can't be traced has no standing.
+1. **Traceability chain** — every enforced decision links *finding (file:line) → gate → spine
+   rule → Intent principle → human author*. A decision that can't be traced has no standing;
+   `compliance-spine evidence --detail` and the `export` bundle show the source lines that
+   triggered it.
 2. **Tamper-evident** — records are append-only and **hash-chained** (`prev_hash`), so the
    log can't be quietly rewritten; artifacts carry provenance (who/what generated them,
    from which inputs, when — signed). Chain of custody end to end.
@@ -455,8 +458,9 @@ The spine is a Python package (the engine) + a `spine/` folder (your policy) + g
    compliance-spine eval && compliance-spine verify   # prove controls work + ledger intact
    ```
 
-See [GETTING-STARTED.md](./GETTING-STARTED.md) for the full walkthrough, or
-[docs/PILOT.md](./docs/PILOT.md) to run a design-partner pilot.
+See [GETTING-STARTED.md](./GETTING-STARTED.md) for the full walkthrough,
+[docs/ASSESSING.md](./docs/ASSESSING.md) for the command-by-command assessment + evidence runbook,
+or [docs/PILOT.md](./docs/PILOT.md) to run a design-partner pilot.
 
 ## 14. References (verify current versions)
 
