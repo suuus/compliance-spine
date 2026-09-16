@@ -78,7 +78,7 @@ written into the ledger. No quiet bypasses.
 
 ## The pieces we built
 
-### The 10 gates (the automatic checks)
+### The 17 gates (the automatic checks)
 
 | Gate | In plain English |
 |---|---|
@@ -92,6 +92,13 @@ written into the ledger. No quiet bypasses.
 | **ai-act-risk-tier** | Classify AI features by risk; if you haven't, treat them as high-risk. |
 | **pii-access-boundary** | Keep the analytics/reporting/logging parts of the app away from raw personal data. |
 | **model-governance** | Don't ship a model/AI change without proof it was validated, documented, and versioned. |
+| **consent-default** | Analytics/telemetry stays off until the person opts in. |
+| **weak-password-hash** | Hash passwords with Argon2id/bcrypt, never MD5 or a bare SHA. |
+| **insecure-transport** | No turning off HTTPS certificate checks; no ancient TLS. |
+| **permissive-cors** | Don't open your API to every website (`*`); name the ones allowed. |
+| **pii-in-url** | Don't put emails/IDs in web addresses — they leak into logs and history. |
+| **error-leakage** | Don't hand stack traces or debug detail to users; log them privately. |
+| **secret-file-committed** | Don't commit `.env`, keys, or certificates into the repo. |
 
 Some gates read the **code itself** (the top ones — PII in logs, hardcoded secrets, which
 component touches personal data). Others check the **context you declare** about a change

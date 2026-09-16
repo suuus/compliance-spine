@@ -11,7 +11,7 @@ data-catalogue. **Not legal advice** — verify against the current regulation t
 | Storage limitation | Art 5(1)(e) | retention TTL present + enforced; no "forever" | `retention-ttl` |
 | Lawful basis | Art 6 | processing has a declared lawful basis | `lawful-basis-required` |
 | Special-category | Art 9 | explicit basis/consent; stricter minimisation; access-restricted; DPIA | `special-category` |
-| Consent | Art 7 | consent captured/withdrawable where basis = consent | `consent` |
+| Consent | Art 7 | consent captured/withdrawable where basis = consent; opt-in by default | `consent-default` |
 | Subject rights (DSAR) | Art 15–22 | access/export/erasure/rectification endpoints exist + tested | `dsar` |
 | Automated decisions | Art 22 | human-intervention path + explanation where legal/significant effect | `automated-decision` |
 | Privacy by design/default | Art 25 | defaults least-data; opt-in not opt-out | `pbd` |
@@ -21,6 +21,12 @@ data-catalogue. **Not legal advice** — verify against the current regulation t
 | DPIA | Art 35 | auto-triggered on high-risk processing | `dpia-trigger` |
 | Transfers | Chap V (44–50) | no data leaves declared region without a transfer mechanism | `cross-border-transfer` |
 | No PII in logs | Art 5 / 32 | log scanner blocks personal data / tokens in logs | `no-pii-in-logs` |
+| Password hashing | Art 32 | weak/fast hash (MD5/SHA) for credentials blocked; Argon2id/bcrypt required | `weak-password-hash` |
+| Secure transport | Art 32 | no disabled certificate verification; no TLS below 1.2 | `insecure-transport` |
+| CORS | Art 32 | no wildcard `*` origin on an authenticated API | `permissive-cors` |
+| Secret hygiene | Art 32 | no `.env`/keys/certs committed to source | `secret-file-committed` |
+| PII in URLs | Art 5(1)(f) | no personal data in URL path segments or query params | `pii-in-url` |
+| Error handling | Art 5(1)(f) / 32 | no stack traces / debug output returned to clients | `error-leakage` |
 
 ## EU AI Act baseline
 > Timeline (verify): in force 1 Aug 2024; prohibited from 2 Feb 2025; GPAI from 2 Aug 2025;

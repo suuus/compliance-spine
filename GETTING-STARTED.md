@@ -96,18 +96,22 @@ your own Copilot model, with an optional headless **GitHub Models / Azure AI Fou
 for unattended CI or an independent reviewer.
 
 ## What's implemented
-- **10 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,
-  cross-border transfer, encryption/secrets, automated decision (Art 22), AI-Act risk tier,
-  PII access-boundary (purpose limitation), model-governance (validation + docs + change record).
+- **17 fail-closed gates** — *data governance:* no-PII-in-logs, lawful basis, special category,
+  retention, cross-border transfer, encryption/secrets, automated decision (Art 22), AI-Act risk
+  tier, PII access-boundary, model-governance, consent-default; *security & hygiene (code-scanning):*
+  weak-password-hash, insecure-transport, permissive-cors, pii-in-url, error-leakage,
+  secret-file-committed.
 - **Evidence** — schema-validated, hash-chained ledger + ghost-decision detector.
 - **4 agents** — coding-advisor, test-author, quality-reviewer, ai-act-baseline.
-- **ZAVA** — 100-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
+- **ZAVA** — 155-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
 - **LLM layer** — a layered reviewer (deterministic gates as the fail-closed floor ∪ a pluggable
   assessor as the ceiling), a recall scorecard, an assessor eval (`assess-eval`), metadata
   propose/confirm, and a learning loop (`adjudicate` / `learn`) that turns confirmed findings
   into new rules.
 - **Callable Copilot agents** — the four agents + a Compliance Spine orchestrator as `/agent`
   entries (`.github/agents/`).
+- **Installable skill** — `.github/skills/gdpr-ai-act-compliance/` packages the GDPR + EU AI Act
+  guidance as a Copilot skill that also tells the agent to run the spine when present.
 - **Confidentiality leak-guard** — hashed denylist; runs in pre-commit and CI.
 
 ## Make it yours

@@ -17,7 +17,7 @@ required fix — never self-approve a never-delegate item; those need a named hu
 ## How to run it
 The tools live in a venv. Either `source .venv/bin/activate` first, or call `.venv/bin/…`.
 ```bash
-compliance-spine check CHANGE.json     # run the 10 fail-closed gates, emit Evidence
+compliance-spine check CHANGE.json     # run the 17 fail-closed gates, emit Evidence
 compliance-spine propose CHANGE.json   # advisory LLM metadata proposal + non-binding preview
 compliance-spine advise CHANGE.json    # remediation guidance for a change
 compliance-spine review CHANGE.json    # quality-reviewer verdict (+ Evidence)
