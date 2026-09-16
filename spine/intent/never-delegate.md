@@ -12,7 +12,7 @@ convenience. This is the constitution the agents inherit. Keep it short, ranked,
 
 ## The list
 
-1. **No personal data in logs, traces, or prompts.**
+1. **No personal data in logs, traces, or prompts.** (GDPR Art 5 — data minimisation)
    - Enforced by: `spine/policies/no-pii-in-logs.rego`
    - Owner: <name> · Ranked: 1
 
@@ -20,7 +20,7 @@ convenience. This is the constitution the agents inherit. Keep it short, ranked,
    - Enforced by: `spine/policies/lawful-basis-required.rego`
    - Owner: <name> · Ranked: 2
 
-3. **No special-category data without explicit basis, stricter minimisation, and a DPIA.**
+3. **No special-category data without explicit basis, stricter minimisation, and a DPIA.** (GDPR Art 9)
    - Enforced by: `spine/policies/special-category.rego` + auto-DPIA trigger
    - Owner: <name> · Ranked: 3
 
@@ -59,7 +59,7 @@ convenience. This is the constitution the agents inherit. Keep it short, ranked,
    - Enforced by: `spine/policies/model-governance.rego`
    - Owner: <name> · Ranked: 10
 
-11. **Every consequential decision has a named human owner in Evidence.**
+11. **Every consequential decision has a named human owner in Evidence.** (accountability, GDPR Art 5(2))
    - Enforced by: the ghost-decision detector (`evidence/`)
    - Owner: <name> · Ranked: 11
 

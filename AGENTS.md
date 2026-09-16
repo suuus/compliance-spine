@@ -31,6 +31,7 @@ compliance-spine llm-review CHANGE.json # gates (floor) + assessor (ceiling), un
 compliance-spine scorecard             # recall lift: gates only vs. gates + assessor
 compliance-spine assess-eval           # ZAVA on the assessor: its own recall / precision
 compliance-spine diagnose              # ISEE coverage (Intent/Structure/Execution/Evidence)
+compliance-spine matrix                # compliance matrix: article -> gate -> coverage status
 ```
 A **change** is a small JSON file (see `examples/`): `files` + a `metadata` block that
 declares the compliance context. Gates fire on what a change declares and fail closed when

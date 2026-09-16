@@ -262,6 +262,14 @@ def _cmd_diagnose(a: argparse.Namespace) -> int:
     return 0 if diag.healthy else 1
 
 
+def _cmd_matrix(a: argparse.Namespace) -> int:
+    from compliance_spine.matrix import build_matrix
+
+    matrix = build_matrix()
+    print(matrix.to_json() if a.json else matrix.render_markdown())
+    return 0
+
+
 def _cmd_governance(_a: argparse.Namespace) -> int:
     report = governance_report()
     print("Governance report")
@@ -356,6 +364,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_diag = sub.add_parser("diagnose", help="ISEE coverage & maturity diagnostic")
     p_diag.add_argument("--no-evals", action="store_true", help="skip running ZAVA")
     p_diag.set_defaults(func=_cmd_diagnose)
+
+    p_mx = sub.add_parser("matrix", help="compliance matrix: article -> gate -> coverage status")
+    p_mx.add_argument("--json", action="store_true", help="emit JSON instead of markdown")
+    p_mx.set_defaults(func=_cmd_matrix)
 
     p_sd = sub.add_parser(
         "scan-diff", help="run the code-scanning gates over the git diff (pre-commit / CI)"

@@ -53,6 +53,7 @@ compliance-spine verify            # verify the hash-chain (tamper detection)
 compliance-spine ghosts            # decisions with no named human owner
 compliance-spine eval              # ZAVA: recall / false-positive-rate per gate
 compliance-spine diagnose          # ISEE coverage & maturity
+compliance-spine matrix            # compliance matrix: article -> gate -> coverage status
 compliance-spine governance        # owners, overrides, ledger, ghosts
 compliance-spine export CHANGE_ID --out bundle.json   # audit / DSAR bundle
 compliance-spine scan-diff --staged                   # code gates on the staged diff
