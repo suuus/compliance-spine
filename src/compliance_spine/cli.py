@@ -206,7 +206,18 @@ def _cmd_llm_review(a: argparse.Namespace) -> int:
     from compliance_spine.evidence.ledger import Ledger
     from compliance_spine.llm import LayeredReviewer
 
-    change = Change.from_json_file(a.change)
+    if a.base is not None or a.staged:
+        from compliance_spine.gitdiff import collect_change
+
+        change = collect_change(staged=a.staged, base=a.base, head=a.head)
+        if not change.files:
+            print("llm-review: no changed text files to review.")
+            return 0
+    elif a.change:
+        change = Change.from_json_file(a.change)
+    else:
+        print("llm-review: provide a change JSON path, or --base <ref> / --staged for a git diff.")
+        return 2
     result = LayeredReviewer().review(change, ledger=Ledger())
     print(result.summary())
     return 0 if result.allowed else 1
@@ -390,9 +401,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_sd.set_defaults(func=_cmd_scan_diff)
 
     p_lr = sub.add_parser(
-        "llm-review", help="layered review: deterministic gates (floor) + assessor (ceiling)"
+        "llm-review",
+        help="layered review: deterministic gates (floor) + assessor (ceiling), on a change "
+        "JSON or a git diff",
     )
-    p_lr.add_argument("change", help="path to a change JSON file")
+    p_lr.add_argument("change", nargs="?", help="path to a change JSON file")
+    p_lr.add_argument("--staged", action="store_true", help="review the staged git diff")
+    p_lr.add_argument("--base", default=None, help="review base..head instead of a change JSON")
+    p_lr.add_argument("--head", default="HEAD")
     p_lr.set_defaults(func=_cmd_llm_review)
 
     p_sc = sub.add_parser(

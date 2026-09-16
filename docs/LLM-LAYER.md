@@ -67,6 +67,7 @@ blocks.
 
 ```bash
 compliance-spine llm-review CHANGE.json   # gates (floor) union assessor (ceiling), fail-closed
+compliance-spine llm-review --base origin/main   # ...or run both layers over a real git diff
 compliance-spine scorecard                # measure the recall lift vs. gates-only
 compliance-spine assess-eval              # ZAVA on the assessor: its own recall / precision
 ```
