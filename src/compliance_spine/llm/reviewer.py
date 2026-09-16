@@ -156,6 +156,7 @@ class ReviewResult:
     change_id: str
     gate_result: EnforcementResult
     findings: list[Finding] = field(default_factory=list)
+    finding_ids: list[str] = field(default_factory=list)  # evidence ids, parallel to findings
 
     @property
     def decision(self) -> str:
@@ -170,8 +171,17 @@ class ReviewResult:
         lines.append(f"  floor (gates): {self.gate_result.decision}")
         if self.findings:
             lines.append("  assessor findings (ceiling):")
-            for f in self.findings:
-                lines.append(f"    - {f.kind} [{f.decision}] {f.location}: {f.rationale}")
+            for i, f in enumerate(self.findings):
+                fid = f"  [{self.finding_ids[i]}]" if i < len(self.finding_ids) else ""
+                lines.append(
+                    f"    - {f.kind} [{f.decision}] conf={f.confidence} {f.location}: "
+                    f"{f.rationale}{fid}"
+                )
+            if self.finding_ids and not self.allowed:
+                lines.append(
+                    "  log a decision: compliance-spine adjudicate <ID> "
+                    "--outcome confirmed|dismissed --human <you> --signature <sig>"
+                )
         else:
             lines.append("  assessor findings (ceiling): none")
         return "\n".join(lines)
@@ -189,13 +199,14 @@ class LayeredReviewer:
         result = ReviewResult(change.id, gate_result, findings)
 
         if ledger is not None:
-            self._emit(ledger, change, result)
+            result.finding_ids = self._emit(ledger, change, result)
         return result
 
-    def _emit(self, ledger: Ledger, change: Change, result: ReviewResult) -> None:
+    def _emit(self, ledger: Ledger, change: Change, result: ReviewResult) -> list[str]:
         # advisory record per assessor finding (captures the rationale + confidence for audit)
+        finding_ids: list[str] = []
         for f in result.findings:
-            ledger.append(DecisionRecord(
+            record = ledger.append(DecisionRecord(
                 action="emit",
                 rule_id=f"llm/{f.kind}",
                 intent_ref="advisory/llm-review",
@@ -206,6 +217,7 @@ class LayeredReviewer:
                 confidence=f.confidence,
                 spine_version=SPINE_VERSION,
             ))
+            finding_ids.append(record["id"])
         # one combined verdict record
         contributed = bool(result.findings)
         ledger.append(DecisionRecord(
@@ -218,3 +230,4 @@ class LayeredReviewer:
             subject={"change": change.id, "model": self.assessor.name},
             spine_version=SPINE_VERSION,
         ))
+        return finding_ids
