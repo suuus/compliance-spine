@@ -428,6 +428,16 @@ compliance-spine/
 
 ---
 
+## License
+
+Copyright (c) 2026 Suzanne Daniels. Licensed under the [MIT License](./LICENSE) — grab it,
+adapt it, ship it.
+
+This project encodes compliance *controls*; it is not legal advice and does not by itself
+certify GDPR or EU AI Act compliance.
+
+---
+
 *Built on ISEE: Intent → Structure → Execution → Evidence. The point isn't to slow the agents
 down. It's to make sure that when they act on personal data or a regulated function, a human
 still owns the decision — and the evidence proves it.*
