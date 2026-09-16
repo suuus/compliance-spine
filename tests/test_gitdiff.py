@@ -20,9 +20,33 @@ def test_default_excludes_cover_fixture_and_doc_paths():
         assert _is_excluded(path, ex), path
 
 
+def test_default_excludes_cover_colocated_test_conventions():
+    # Co-located tests across ecosystems (Jest __tests__/*.test.js, Angular *.spec.ts, pytest
+    # test_*.py / *_test.py, Go *_test.go) carry fixture creds/PII by convention — exclude them
+    # the same way whole tests/ directories already are.
+    ex = _load_scan_excludes()
+    for path in (
+        "src/backend/__tests__/controllers/auth.test.js",
+        "src/backend/__tests__/__mocks__/db.js",
+        "src/components/ProductModal.test.tsx",
+        "risk-service/src/services/foo.spec.js",
+        "app/services/test_pricing.py",
+        "app/services/pricing_test.py",
+        "internal/handler_test.go",
+    ):
+        assert _is_excluded(path, ex), path
+
+
 def test_production_source_is_not_excluded():
     ex = _load_scan_excludes()
-    for path in ("src/app/auth.py", "api/handlers/login.py", "lib/http/client.js"):
+    for path in (
+        "src/app/auth.py",
+        "api/handlers/login.py",
+        "lib/http/client.js",
+        # 'test' inside a word (contest, latest) must not trip the test excludes.
+        "src/contest/routes.js",
+        "src/latest.py",
+    ):
         assert not _is_excluded(path, ex), path
 
 

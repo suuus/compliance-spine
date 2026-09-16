@@ -18,9 +18,21 @@ _MAX_BYTES = 1_000_000
 # error (it would fail a PR because a doc quotes `password = "..."`). Extend per-repo via a
 # git-style ``spine/scan-ignore`` file.
 DEFAULT_SCAN_EXCLUDES: tuple[str, ...] = (
+    # Test suites and fixtures — not production data paths; fixture credentials/PII here are
+    # conventional, not deployed. Cover the test *directory* and the *co-located file* conventions
+    # across ecosystems (a JS repo's __tests__/auth.test.js was false-positiving a hardcoded-
+    # credential finding because only tests/ dirs were excluded).
     "tests/",
     "test/",
     "spec/",
+    "__tests__/",
+    "__mocks__/",
+    "*.test.*",
+    "*.spec.*",
+    "test_*.py",
+    "*_test.py",
+    "*_test.go",
+    # Eval datasets, docs, the spine's own config, and generated/vendored artefacts.
     "zava/",
     "docs/",
     "examples/",
