@@ -1,8 +1,8 @@
 # Personal-data inventory (companion to spine/intent/never-delegate.md).
 #
-# Which data elements are personal / special-category. The pii-access-boundary gate treats
-# any of these as "PII" when it appears as an attribute (`.email`), a key/column
-# (`"email"`, `['email']`), or a kwarg (`email=`) inside a restricted component.
+# Which data elements are personal / special-category. Both code gates read this list:
+# pii-access-boundary treats any of these as "PII" inside a restricted component, and
+# no-pii-in-logs treats any of these as "must not appear in logs" — so you declare them once.
 #
 # Replace with your real data catalogue. Keep it generic — no customer/domain terms.
 
@@ -14,6 +14,7 @@ personal:
   - ssn
   - bsn
   - nino
+  - national_id
   - passport
   - dob
   - birthdate
@@ -28,9 +29,13 @@ personal:
   - surname
   - geolocation
   - ip_address
+  - last_ip
 
 special:            # GDPR Art 9 special categories
   - diagnosis
+  - health_conditions
+  - medical_notes
+  - medical_history
   - health_record
   - biometric
   - fingerprint

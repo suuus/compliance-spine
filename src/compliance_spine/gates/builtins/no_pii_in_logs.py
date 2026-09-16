@@ -6,12 +6,21 @@ The heuristic flags a personal-data token only when it appears in a *reference* 
 attribute access (``user.email``), interpolation (``f"{user}"`` / ``${user}``), a key/kwarg
 (``email=`` / ``"ssn":``) or a bare argument (``log(user)``) — not when the same word merely
 appears in prose (``"user logged in"``). Values wrapped in a redactor are treated as safe.
+
+The personal-data vocabulary is the built-in defaults below **unioned with the repository's
+``spine/data-catalogue.yaml`` (personal + special)** — the same catalogue the pii-access-boundary
+gate reads — so an adopter declares what counts as personal data in one place and both code gates
+honour it (e.g. adding ``health_conditions`` makes this gate flag it in logs too).
 """
 
 from __future__ import annotations
 
 import re
+from functools import cache
 
+import yaml
+
+from compliance_spine.config import paths
 from compliance_spine.gates.base import Gate, GateSpec
 
 # Log / trace / print call sites across common languages.
@@ -24,27 +33,27 @@ _LOG_CALL = re.compile(
     r"\s*\(",
 )
 
-# Personal-data fields (ambiguous words like ip/sin/health/zip deliberately excluded).
-_FIELDS = (
+# Built-in personal-data fields. Ambiguous bare words (ip / sin / health / zip) are excluded, but
+# unambiguous compound special-category fields (health_conditions, medical_notes) are included.
+_DEFAULT_FIELDS = (
     "email", "emails", "e_mail", "phone", "telephone", "mobile", "msisdn",
-    "ssn", "bsn", "nino", "passport",
+    "ssn", "bsn", "nino", "passport", "national_id", "nationalid",
     "dob", "birthdate", "birthday", "date_of_birth",
     "address", "street", "postcode", "zipcode",
     "firstname", "first_name", "lastname", "last_name",
     "fullname", "full_name", "surname", "given_name", "family_name",
     "iban", "cvv", "creditcard", "credit_card", "card_number",
-    "gender", "ethnicity", "religion", "diagnosis",
-    "biometric", "fingerprint", "geolocation", "ip_address", "ipaddress",
+    "gender", "ethnicity", "religion",
+    "diagnosis", "health_conditions", "medical_notes", "medical_history", "health_record",
+    "biometric", "fingerprint", "geolocation", "ip_address", "ipaddress", "last_ip",
 )
-# Objects that typically *contain* personal data.
-_CONTAINERS = (
+# Objects that typically *contain* personal data. Person-like only — record objects such as a
+# claim or an order are excluded because most of their attributes (id, status, amount) are not
+# personal; specific personal / special-category fields on them are caught via the field list.
+_DEFAULT_CONTAINERS = (
     "user", "customer", "member", "account", "profile", "person",
     "patient", "applicant", "subscriber", "employee",
 )
-_ALL = _FIELDS + _CONTAINERS
-_ALT = "|".join(sorted(_ALL, key=len, reverse=True))
-_CONT_ALT = "|".join(sorted(_CONTAINERS, key=len, reverse=True))
-_FIELD_ALT = "|".join(sorted(_FIELDS, key=len, reverse=True))
 
 _REDACTORS = (
     "redact", "mask", "anonymize", "anonymise", "pseudonymize", "pseudonymise",
@@ -52,13 +61,35 @@ _REDACTORS = (
 )
 _REDACT_RE = re.compile(rf"(?:{'|'.join(_REDACTORS)})\s*\(", re.I)
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
-
-# Reference-position matchers.
-_ATTR = re.compile(rf"\b(?:{_CONT_ALT})\s*\.\s*\w|\.\s*(?:{_FIELD_ALT})\b", re.I)
-_KV = re.compile(rf"""['"]?\b(?:{_FIELD_ALT})\b['"]?\s*[:=]""", re.I)
-_BARE_CONTAINER = re.compile(rf"(?:^|[(,\[])\s*\{{?\s*(?:{_CONT_ALT})\s*[)\],.}}]", re.I)
 _INTERP = re.compile(r"\{[^{}]*\}|\$\{[^}]*\}|%\([a-zA-Z_]+\)")
-_TOKEN_IN = re.compile(rf"\b(?:{_ALT})\b", re.I)
+
+
+@cache
+def _catalogue_fields() -> tuple[str, ...]:
+    """Personal + special-category element names declared in spine/data-catalogue.yaml."""
+    try:
+        data = yaml.safe_load(paths().data_catalogue.read_text(encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001 — a missing/broken catalogue must not break scanning
+        return ()
+    out: set[str] = set()
+    for group in ("personal", "special"):
+        out.update(str(x).strip().lower() for x in (data.get(group) or []) if str(x).strip())
+    return tuple(sorted(out))
+
+
+@cache
+def _matchers() -> dict[str, re.Pattern[str]]:
+    fields = tuple(sorted(set(_DEFAULT_FIELDS) | set(_catalogue_fields())))
+    containers = _DEFAULT_CONTAINERS
+    field_alt = "|".join(sorted((re.escape(w) for w in fields), key=len, reverse=True))
+    cont_alt = "|".join(sorted((re.escape(w) for w in containers), key=len, reverse=True))
+    all_alt = "|".join(sorted((re.escape(w) for w in fields + containers), key=len, reverse=True))
+    return {
+        "attr": re.compile(rf"\b(?:{cont_alt})\s*\.\s*\w|\.\s*(?:{field_alt})\b", re.I),
+        "kv": re.compile(rf"""['"]?\b(?:{field_alt})\b['"]?\s*[:=]""", re.I),
+        "bare": re.compile(rf"(?:^|[(,\[])\s*\{{?\s*(?:{all_alt})\s*[)\],.}}]", re.I),
+        "token": re.compile(rf"\b(?:{all_alt})\b", re.I),
+    }
 
 
 def _redacted_near(text: str, pos: int) -> bool:
@@ -66,6 +97,8 @@ def _redacted_near(text: str, pos: int) -> bool:
 
 
 def _scan_payload(path: str, lineno: int, payload: str) -> list[str]:
+    m = _matchers()
+    token_re = m["token"]
     findings: list[str] = []
 
     def add(msg: str) -> None:
@@ -73,24 +106,24 @@ def _scan_payload(path: str, lineno: int, payload: str) -> list[str]:
         if entry not in findings:
             findings.append(entry)
 
-    m = _EMAIL_RE.search(payload)
-    if m and not _redacted_near(payload, m.start()):
+    hit = _EMAIL_RE.search(payload)
+    if hit and not _redacted_near(payload, hit.start()):
         add("email address literal in log payload")
 
     for block in _INTERP.finditer(payload):
         text = block.group()
         if _REDACT_RE.search(text):
             continue
-        tok = _TOKEN_IN.search(text)
+        tok = token_re.search(text)
         if tok:
             add(f"interpolates personal-data token '{tok.group().lower()}'")
 
-    for rx, label in ((_ATTR, "attribute"), (_KV, "field"), (_BARE_CONTAINER, "object")):
-        for hit in rx.finditer(payload):
-            if _redacted_near(payload, hit.start()):
+    for key, label in (("attr", "attribute"), ("kv", "field"), ("bare", "object")):
+        for found in m[key].finditer(payload):
+            if _redacted_near(payload, found.start()):
                 continue
-            token = _TOKEN_IN.search(hit.group())
-            name = token.group().lower() if token else hit.group().strip("(),[].{} \"'")
+            token = token_re.search(found.group())
+            name = token.group().lower() if token else found.group().strip("(),[].{} \"'")
             add(f"logs personal-data {label} '{name}'")
 
     return findings
