@@ -265,8 +265,15 @@ def _cmd_diagnose(a: argparse.Namespace) -> int:
 def _cmd_matrix(a: argparse.Namespace) -> int:
     from compliance_spine.matrix import build_matrix
 
-    matrix = build_matrix()
+    matrix = build_matrix(framework=a.framework)
     print(matrix.to_json() if a.json else matrix.render_markdown())
+    return 0
+
+
+def _cmd_frameworks(_a: argparse.Namespace) -> int:
+    from compliance_spine.frameworks import render
+
+    print(render())
     return 0
 
 
@@ -367,7 +374,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_mx = sub.add_parser("matrix", help="compliance matrix: article -> gate -> coverage status")
     p_mx.add_argument("--json", action="store_true", help="emit JSON instead of markdown")
+    p_mx.add_argument("--framework", help="filter to one framework pack (e.g. gdpr, eu-ai-act)")
     p_mx.set_defaults(func=_cmd_matrix)
+
+    sub.add_parser(
+        "frameworks", help="list regulatory framework packs and their gate coverage"
+    ).set_defaults(func=_cmd_frameworks)
 
     p_sd = sub.add_parser(
         "scan-diff", help="run the code-scanning gates over the git diff (pre-commit / CI)"

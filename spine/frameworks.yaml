@@ -1,0 +1,35 @@
+# Regulatory framework packs — companion to spine/intent/never-delegate.md + spine/gates.
+#
+# Each pack groups the gates that enforce one regulation. A gate's never-delegate principle,
+# ZAVA cases, and article references travel with it. To add a pack (e.g. a sector regulation):
+#   1. add its gates (spine/gates/gate-config.yaml + a gate class) and never-delegate principles,
+#   2. list the gates under a new framework key here.
+# See docs/FRAMEWORKS.md. Keep customer identity out of this file (the sector itself is fine).
+
+frameworks:
+  gdpr:
+    name: GDPR
+    description: EU General Data Protection Regulation (2016/679)
+    gates:
+      - no-pii-in-logs
+      - lawful-basis-required
+      - special-category
+      - retention-ttl
+      - cross-border-transfer
+      - encryption-required
+      - automated-decision
+      - pii-access-boundary
+      - consent-default
+      - weak-password-hash
+      - pii-in-url
+      - insecure-transport
+      - permissive-cors
+      - error-leakage
+      - secret-file-committed
+
+  eu-ai-act:
+    name: EU AI Act
+    description: EU Artificial Intelligence Act (2024/1689)
+    gates:
+      - ai-act-risk-tier
+      - model-governance

@@ -447,6 +447,7 @@ The spine is a Python package (the engine) + a `spine/` folder (your policy) + g
    compliance-spine check change.json            # gate a described change (see examples/)
    compliance-spine scan-diff --base origin/main # gate a real git diff
    compliance-spine llm-review change.json       # floor (gates) ∪ ceiling (your Copilot model)
+   compliance-spine frameworks                   # GDPR + EU AI Act packs (docs/FRAMEWORKS.md)
    compliance-spine eval && compliance-spine verify   # prove controls work + ledger intact
    ```
 

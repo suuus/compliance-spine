@@ -119,7 +119,7 @@ class Matrix:
         )
 
 
-def build_matrix(config: dict | None = None) -> Matrix:
+def build_matrix(config: dict | None = None, framework: str | None = None) -> Matrix:
     registry = IntentRegistry.load()
     cfg = config if config is not None else yaml.safe_load(
         paths().gate_config.read_text(encoding="utf-8")
@@ -165,4 +165,8 @@ def build_matrix(config: dict | None = None) -> Matrix:
                 evidence_count=ev_count.get(gate or "", 0),
             )
         )
+    if framework:
+        from compliance_spine.frameworks import framework_of
+
+        rows = [r for r in rows if r.gate and framework_of(r.gate) == framework]
     return Matrix(rows)
