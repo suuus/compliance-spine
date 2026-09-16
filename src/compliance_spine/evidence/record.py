@@ -53,6 +53,7 @@ class DecisionRecord:
     outputs_hash: str | None = None
     artifacts: list[str] | None = None
     spine_version: str | None = None
+    confidence: float | None = None
     prev_hash: str = GENESIS_PREV
 
     def to_dict(self) -> dict:
@@ -80,6 +81,8 @@ class DecisionRecord:
             data["artifacts"] = self.artifacts
         if self.spine_version is not None:
             data["spine_version"] = self.spine_version
+        if self.confidence is not None:
+            data["confidence"] = self.confidence
         return data
 
     def validate(self) -> None:

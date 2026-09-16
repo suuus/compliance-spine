@@ -39,6 +39,7 @@ class Finding:
     decision: str  # "block" (high-confidence) | "flag" (candidate -> escalate)
     rationale: str
     location: str = ""
+    confidence: float = 0.6  # assessor's probability this is a real violation (0-1)
 
     @property
     def spine_decision(self) -> str:
@@ -86,15 +87,17 @@ class HeuristicAssessor:
                 if comment and _PII_RE.search(comment):
                     findings.append(Finding(
                         "pii-in-comment", "flag",
-                        "personal data referenced in a comment / TODO", loc))
+                        "personal data referenced in a comment / TODO", loc, confidence=0.55))
                 if _MODEL_CALL.search(code) and _PII_RE.search(code):
                     findings.append(Finding(
                         "pii-to-model", "block",
-                        "personal data sent to a model / prompt (Art 5, minimisation)", loc))
+                        "personal data sent to a model / prompt (Art 5, minimisation)", loc,
+                        confidence=0.9))
                 elif _OUTBOUND.search(code) and _PII_RE.search(code):
                     findings.append(Finding(
                         "undeclared-transfer", "flag",
-                        "personal data in an outbound call — possible undeclared transfer", loc))
+                        "personal data in an outbound call — possible undeclared transfer", loc,
+                        confidence=0.7))
         return findings
 
 
@@ -133,6 +136,7 @@ class CallableAssessor:
                     decision=str(d.get("decision", "flag")),
                     rationale=str(d.get("rationale", "")),
                     location=str(d.get("location", "")),
+                    confidence=float(d.get("confidence", 0.5)),
                 )
                 for d in data
             ]
@@ -189,7 +193,7 @@ class LayeredReviewer:
         return result
 
     def _emit(self, ledger: Ledger, change: Change, result: ReviewResult) -> None:
-        # advisory record per assessor finding (captures the rationale for audit)
+        # advisory record per assessor finding (captures the rationale + confidence for audit)
         for f in result.findings:
             ledger.append(DecisionRecord(
                 action="emit",
@@ -199,6 +203,7 @@ class LayeredReviewer:
                 inputs_hash=change.payload_hash(),
                 actor={"type": "llm", "id": self.assessor.name},
                 subject={"change": change.id, "note": f.rationale, "kind": f.kind},
+                confidence=f.confidence,
                 spine_version=SPINE_VERSION,
             ))
         # one combined verdict record

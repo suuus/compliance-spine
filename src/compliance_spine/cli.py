@@ -222,6 +222,27 @@ def _cmd_scorecard(_a: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def _cmd_adjudicate(a: argparse.Namespace) -> int:
+    from compliance_spine.learning import adjudicate
+
+    try:
+        record = adjudicate(
+            a.finding_id, a.outcome, human_id=a.human, signature=a.signature, reason=a.reason
+        )
+    except (KeyError, ValueError) as exc:
+        print(f"adjudicate: {exc}")
+        return 1
+    print(f"adjudication recorded: {record['id']} — {a.outcome} by {a.human}")
+    return 0
+
+
+def _cmd_learn(_a: argparse.Namespace) -> int:
+    from compliance_spine.learning import learning_report
+
+    print(learning_report().render())
+    return 0
+
+
 def _cmd_diagnose(a: argparse.Namespace) -> int:
     diag = diagnose(run_evals=not a.no_evals)
     print(diag.render())
@@ -341,6 +362,19 @@ def build_parser() -> argparse.ArgumentParser:
         "scorecard", help="measure recall lift: gates only vs. gates + assessor"
     )
     p_sc.set_defaults(func=_cmd_scorecard)
+
+    p_adj = sub.add_parser("adjudicate", help="record a human decision on an assessor finding")
+    p_adj.add_argument("finding_id", metavar="FINDING_ID")
+    p_adj.add_argument("--outcome", choices=["confirmed", "dismissed"], required=True)
+    p_adj.add_argument("--human", required=True, help="the deciding human's id")
+    p_adj.add_argument("--signature", required=True)
+    p_adj.add_argument("--reason", default=None)
+    p_adj.set_defaults(func=_cmd_adjudicate)
+
+    p_learn = sub.add_parser(
+        "learn", help="findings by adjudication: confirmed / dismissed / pending"
+    )
+    p_learn.set_defaults(func=_cmd_learn)
 
     p_gov = sub.add_parser("governance", help="governance gaps: owners, overrides, ledger, ghosts")
     p_gov.set_defaults(func=_cmd_governance)

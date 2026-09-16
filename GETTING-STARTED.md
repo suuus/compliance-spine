@@ -58,6 +58,8 @@ compliance-spine export CHANGE_ID --out bundle.json   # audit / DSAR bundle
 compliance-spine scan-diff --staged                   # code gates on the staged diff
 compliance-spine llm-review CHANGE.json               # gates (floor) + assessor (ceiling)
 compliance-spine scorecard                            # recall lift vs. gates-only
+compliance-spine adjudicate FINDING_ID --outcome confirmed --human you --signature s
+compliance-spine learn                                # findings: confirmed / dismissed / pending
 ```
 A **change** is a small JSON file — see [`examples/`](./examples). `metadata` declares the
 compliance context (data category, lawful basis, retention, transfers, AI feature, ...);

@@ -88,6 +88,26 @@ gate its authority on the score.** Every assessor finding is recorded as an advi
 entry (`actor.type: llm`) with its rationale — reproducible accountability comes from the record,
 not from determinism.
 
+## Recording and learning from probabilistic findings
+
+A probabilistic finding is only useful if it's recorded and adjudicated. So:
+
+- **Every assessor finding is recorded** with its **confidence** (`actor.type: llm`,
+  `confidence: 0-1`) and rationale — even the ones no deterministic gate caught.
+- **A human's decision on a finding is recorded too** — `compliance-spine adjudicate
+  <finding-id> --outcome confirmed|dismissed --human <id> --signature <sig>` writes a
+  human-owned record linked to the finding. This captures *the decision the agent or human
+  made*, which the gates alone would have left invisible.
+- **The flywheel** — `compliance-spine learn` sorts findings by adjudication:
+  - **confirmed** → a real violation the fixed rules missed → a candidate to **encode as a new
+    gate + ZAVA case** (recall you then keep deterministically, forever).
+  - **dismissed** → an assessor false positive → signal to tune the assessor / prompt.
+  - **pending** → awaiting human review.
+
+That is how the probabilistic layer *improves the deterministic one*: the LLM finds the long
+tail, a human labels it, and the confirmed labels become permanent rules. The gates never get
+cleverer — the rulebook gets bigger, from evidence.
+
 ## Optional: a headless model (GitHub Models or Azure AI Foundry)
 
 Use a dedicated, **pinned** model only for the narrow cases where the Copilot-model default
