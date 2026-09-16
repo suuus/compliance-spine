@@ -1,0 +1,8 @@
+{"id": "covered-log", "expected": "block", "tags": ["covered"], "change": {"id": "sc-1", "files": [{"path": "src/svc/auth.py", "content": "logger.info(f'{user.email}')"}], "metadata": {}}}
+{"id": "covered-secret", "expected": "block", "tags": ["covered"], "change": {"id": "sc-2", "files": [{"path": "src/svc/keys.py", "content": "api_key = 'AKIA1234567890ABCDEF'"}], "metadata": {}}}
+{"id": "ext-pii-to-model", "expected": "block", "tags": ["extended"], "change": {"id": "sc-3", "files": [{"path": "src/svc/summ.py", "content": "resp = model.complete(f'summarize {patient.diagnosis}')"}], "metadata": {}}}
+{"id": "ext-pii-http", "expected": "block", "tags": ["extended"], "change": {"id": "sc-4", "files": [{"path": "src/svc/sync.py", "content": "requests.post(url, json={'email': user.email})"}], "metadata": {}}}
+{"id": "ext-pii-comment", "expected": "block", "tags": ["extended"], "change": {"id": "sc-5", "files": [{"path": "src/svc/store.py", "content": "save()  # FIXME: store user.ssn unencrypted for now"}], "metadata": {}}}
+{"id": "clean-compute", "expected": "allow", "tags": ["clean"], "change": {"id": "sc-6", "files": [{"path": "src/svc/calc.py", "content": "total = compute()"}], "metadata": {}}}
+{"id": "clean-model-no-pii", "expected": "allow", "tags": ["clean"], "change": {"id": "sc-7", "files": [{"path": "src/svc/summ.py", "content": "resp = model.complete(f'summarize order {order_id}')"}], "metadata": {}}}
+{"id": "clean-http-no-pii", "expected": "allow", "tags": ["clean"], "change": {"id": "sc-8", "files": [{"path": "src/svc/sync.py", "content": "requests.post(url, json={'count': n})"}], "metadata": {}}}

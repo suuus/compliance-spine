@@ -25,6 +25,8 @@ compliance-spine ai-act CHANGE.json    # AI-Act risk tier + Art 9-15 checklist
 compliance-spine eval                  # ZAVA: recall / false-positive-rate per gate
 compliance-spine verify                # verify the tamper-evident Evidence hash-chain
 compliance-spine scan-diff --staged    # code gates on the staged diff (used by the pre-commit hook)
+compliance-spine llm-review CHANGE.json # gates (floor) + assessor (ceiling), union fail-closed
+compliance-spine scorecard             # recall lift: gates only vs. gates + assessor
 compliance-spine diagnose              # ISEE coverage (Intent/Structure/Execution/Evidence)
 ```
 A **change** is a small JSON file (see `examples/`): `files` + a `metadata` block that

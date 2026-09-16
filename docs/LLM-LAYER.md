@@ -52,6 +52,42 @@ compliance-spine check change.json         # the binding, deterministic, human-o
 The proposal is written to the Evidence ledger as `action: emit`, `actor.type: llm` — clearly
 advisory, and distinct from a gate decision. It never allows, blocks, or escalates.
 
+## The layered reviewer — floor + ceiling (built)
+
+Detection is where a model earns its keep, so the reviewer is a **union, fail-closed**:
+
+- **Floor** — the deterministic gates: a regression net of what we've already learned must
+  never slip.
+- **Ceiling** — a pluggable *assessor* that catches what the fixed rules miss.
+
+The assessor may **add** findings and **raise** the verdict; it can **never clear** a gate's
+block. You get the assessor's recall without a floor that regresses or that a prompt-injected
+input can erode — a garbage/injected model response parses to *no findings*, so the floor still
+blocks.
+
+```bash
+compliance-spine llm-review CHANGE.json   # gates (floor) union assessor (ceiling), fail-closed
+compliance-spine scorecard                # measure the recall lift vs. gates-only
+```
+
+Assessors are pluggable (`compliance_spine.llm`):
+- `HeuristicAssessor` — a deterministic **stand-in** (not a model), shipped so the architecture,
+  evidence, and scorecard run offline and in CI. It catches a few real patterns the core gates
+  miss (personal data sent to a model/prompt, personal data in an outbound call, PII in a TODO).
+- `CallableAssessor(fn)` — wrap **any** model callable `(prompt) -> json`: your Copilot model,
+  GitHub Models, or an Azure AI Foundry endpoint. This is where real probabilistic recall comes
+  from; the stand-in only proves the plumbing.
+
+### The scorecard — let the numbers decide
+
+`compliance-spine scorecard` runs an *extended* dataset (violations the fixed rules don't cover)
+through gates-only vs. gates-∪-assessor and prints the recall lift. With the shipped stand-in it
+already shows a lift with no new false positives; swap in a real model and it measures the real
+thing. **That is how you earn trust in a probabilistic decider: measure it, watch for drift, and
+gate its authority on the score.** Every assessor finding is recorded as an advisory Evidence
+entry (`actor.type: llm`) with its rationale — reproducible accountability comes from the record,
+not from determinism.
+
 ## Optional: a headless model (GitHub Models or Azure AI Foundry)
 
 Use a dedicated, **pinned** model only for the narrow cases where the Copilot-model default
@@ -78,6 +114,7 @@ the deterministic gates **dispose**, and the human owns the never-delegate calls
 personal data out of the model's inputs — run it on diffs/code, which the `no-pii-in-logs`
 gate keeps clean (the deterministic layer protects the LLM layer's inputs).
 
-> Not built yet: this repo ships the **propose/confirm** flow on your Copilot model. A headless
-> GitHub Models / Azure AI Foundry detector is an optional add-on for CI or independent review —
-> the hooks (advisory Evidence, DeepEval eval, MCP) are already here.
+> Built: the propose/confirm flow **and** the layered reviewer + scorecard (with a deterministic
+> stand-in assessor, so they run offline and in CI). To get real probabilistic recall, wire a
+> model via `CallableAssessor` — your Copilot model, GitHub Models, or an Azure AI Foundry
+> endpoint. The hooks (advisory Evidence, the scorecard, DeepEval, MCP) are already here.

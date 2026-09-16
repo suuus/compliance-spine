@@ -202,6 +202,26 @@ def _cmd_scan_diff(a: argparse.Namespace) -> int:
     return 0 if result.allowed else 1
 
 
+def _cmd_llm_review(a: argparse.Namespace) -> int:
+    from compliance_spine.evidence.ledger import Ledger
+    from compliance_spine.llm import LayeredReviewer
+
+    change = Change.from_json_file(a.change)
+    result = LayeredReviewer().review(change, ledger=Ledger())
+    print(result.summary())
+    return 0 if result.allowed else 1
+
+
+def _cmd_scorecard(_a: argparse.Namespace) -> int:
+    from compliance_spine.llm.scorecard import score
+
+    report = score()
+    print(report.render())
+    # The augmentation must lift recall without raising false positives.
+    ok = report.augmented.false_positive_rate <= report.baseline.false_positive_rate
+    return 0 if ok else 1
+
+
 def _cmd_diagnose(a: argparse.Namespace) -> int:
     diag = diagnose(run_evals=not a.no_evals)
     print(diag.render())
@@ -310,6 +330,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_sd.add_argument("--base", default=None, help="scan base..head instead of the staged diff")
     p_sd.add_argument("--head", default="HEAD")
     p_sd.set_defaults(func=_cmd_scan_diff)
+
+    p_lr = sub.add_parser(
+        "llm-review", help="layered review: deterministic gates (floor) + assessor (ceiling)"
+    )
+    p_lr.add_argument("change", help="path to a change JSON file")
+    p_lr.set_defaults(func=_cmd_llm_review)
+
+    p_sc = sub.add_parser(
+        "scorecard", help="measure recall lift: gates only vs. gates + assessor"
+    )
+    p_sc.set_defaults(func=_cmd_scorecard)
 
     p_gov = sub.add_parser("governance", help="governance gaps: owners, overrides, ledger, ghosts")
     p_gov.set_defaults(func=_cmd_governance)
