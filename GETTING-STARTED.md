@@ -73,6 +73,12 @@ compliance-spine-mcp        # stdio transport; tools: check_change, advise, revi
                             # recommend_tests, classify_ai_act_risk, verify_ledger,
                             # scan_ghosts, run_evals, list_intent
 ```
+The MCP server needs the **`[mcp]` extra** (`pip install "compliance-spine[mcp]"`) — without it
+`compliance-spine-mcp` exits with "MCP SDK not installed" and the server silently won't load.
+In your `.mcp.json`, point `command` at a **resolvable** `compliance-spine-mcp` (an absolute path,
+or ensure the venv is on `PATH`). The `[mcp]` dependency tree (mcp / starlette) can clash with an
+app's own web deps, so for an app you're governing, consider installing the spine tooling in a
+**dedicated venv** (or via `pipx`) rather than the app's runtime environment.
 
 ## Enforce on every commit
 Instructions (`.github/copilot-instructions.md`) tell Copilot what to do; this makes it

@@ -10,3 +10,4 @@
 {"id": "pab-c-substring", "expected": "allow", "tags": ["clean", "adversarial"], "change": {"id": "c-pab-c4", "files": [{"path": "src/analytics/report.py", "content": "n = user.email_count"}], "metadata": {}}}
 {"id": "pab-c-prose-comment", "expected": "allow", "tags": ["clean", "adversarial"], "change": {"id": "c-pab-c5", "files": [{"path": "src/analytics/report.py", "content": "# email the report to admins each week"}], "metadata": {}}}
 {"id": "pab-c-unrestricted-special", "expected": "allow", "tags": ["clean", "allowed-component"], "change": {"id": "c-pab-c6", "files": [{"path": "services/ml/model.py", "content": "d = record['diagnosis']"}], "metadata": {}}}
+{"id": "v-file-stem-analytics", "expected": "block", "tags": ["file-stem"], "change": {"id": "case-v-file-stem", "files": [{"path": "services/analytics.py", "content": "payload = {\"email\": customer.email}"}], "metadata": {"data_category": "personal"}}}

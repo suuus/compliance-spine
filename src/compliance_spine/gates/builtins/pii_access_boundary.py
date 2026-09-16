@@ -5,8 +5,9 @@ It reads two companions:
   - spine/data-catalogue.yaml   -> which data elements are personal / special-category
   - spine/access-boundaries.yaml -> which components must not access PII directly
 
-A changed file is "restricted" when a boundary component name appears as a path segment
-(e.g. src/analytics/report.py -> "analytics"). The gate flags a restricted file that
+A changed file is "restricted" when a boundary component name appears as a path segment or as a
+file stem (e.g. src/analytics/report.py or services/analytics.py -> "analytics"). The gate flags
+a restricted file that
 references a catalogued PII element as an attribute (`.email`), a key/column (`"email"`,
 `['email']`) or a kwarg (`email=`) — the pattern the user described: *accessing data X in
 component Y where X is PII and Y must not touch PII directly.*
@@ -56,6 +57,9 @@ def _component(path: str, restricted: frozenset[str]) -> str | None:
     for segment in re.split(r"[\\/]", path.lower()):
         if segment in restricted:
             return segment
+        stem = segment.rsplit(".", 1)[0]  # a file segment: analytics.py -> analytics
+        if stem != segment and stem in restricted:
+            return stem
     return None
 
 
