@@ -1,5 +1,5 @@
 ---
-name: "Compliance Test Author"
+name: compliance-test-author
 description: "Recommends the compliance tests a change should carry, based on the context it declares, and can emit pytest stubs. Use when adding or changing code that touches personal data or AI features, to make sure the privacy controls are tested."
 tools: ["execute", "read", "search"]
 user-invocable: true

@@ -1,5 +1,5 @@
 ---
-name: "Compliance Reviewer"
+name: compliance-reviewer
 description: "GDPR / EU AI Act reviewer for a code change. Runs the compliance spine's fail-closed gates, returns a verdict (approve / changes-requested / needs-a-human), and escalates never-delegate items instead of rubber-stamping. Use before merging anything that touches personal data, logging, storage, transfers, secrets, or an AI feature."
 tools: ["execute", "read", "search"]
 user-invocable: true

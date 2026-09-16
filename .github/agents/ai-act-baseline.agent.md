@@ -1,5 +1,5 @@
 ---
-name: "AI Act Baseline"
+name: ai-act-baseline
 description: "EU AI Act baseline for an AI feature. Classifies the risk tier (defaults to high-risk until assessed) and produces the Art 9-15 obligation checklist. Use when a change adds or modifies an AI/model feature."
 tools: ["execute", "read", "search"]
 user-invocable: true

@@ -1,5 +1,5 @@
 ---
-name: "Compliance Advisor"
+name: compliance-advisor
 description: "Coding advisor that turns compliance-spine gate findings into concrete, article-referenced fixes. Use while writing or fixing code that touches personal data, logging, storage, transfers, secrets, or AI features, to get plain-English remediation guidance."
 tools: ["execute", "read", "search"]
 user-invocable: true

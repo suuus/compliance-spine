@@ -1,10 +1,10 @@
 ---
-name: "Compliance Spine"
+name: compliance-spine
 description: "Front door to the GDPR / EU AI Act compliance spine. Routes to the right specialist — advise while coding, author compliance tests, classify AI features, and review before merge — and keeps every consequential decision in the tamper-evident Evidence ledger with a human on the never-delegate calls."
 tools: ["execute", "read", "search", "agent"]
 user-invocable: true
 argument-hint: "what you want checked (a change, a diff, an AI feature)"
-agents: ["Compliance Advisor", "Compliance Test Author", "AI Act Baseline", "Compliance Reviewer"]
+agents: ["compliance-advisor", "compliance-test-author", "ai-act-baseline", "compliance-reviewer"]
 ---
 
 # Compliance Spine
