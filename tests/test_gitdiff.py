@@ -13,6 +13,8 @@ def test_default_excludes_cover_fixture_and_doc_paths():
         "docs/CONTROL-CATALOGUE.md",
         "examples/change-violation.json",
         ".github/copilot-instructions.md",
+        "spine/scan-ignore",
+        "spine/data-catalogue.yaml",
         "yarn.lock",
     ):
         assert _is_excluded(path, ex), path
@@ -24,7 +26,9 @@ def test_production_source_is_not_excluded():
         assert not _is_excluded(path, ex), path
 
 
-def test_repo_scan_ignore_excludes_gate_source():
-    # spine/scan-ignore adds the gates' own source (its regexes look like violations).
+def test_repo_scan_ignore_excludes_gate_source_and_demo():
+    # spine/scan-ignore adds the gates' own source (its regexes look like violations) and the
+    # demo (which intentionally embeds a leaky sample).
     ex = _load_scan_excludes()
     assert _is_excluded("src/compliance_spine/gates/builtins/security_hygiene.py", ex)
+    assert _is_excluded("scripts/demo.sh", ex)

@@ -24,6 +24,7 @@ DEFAULT_SCAN_EXCLUDES: tuple[str, ...] = (
     "zava/",
     "docs/",
     "examples/",
+    "spine/",
     "*.md",
     "*.lock",
     "*.min.js",
