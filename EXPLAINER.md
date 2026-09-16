@@ -165,12 +165,18 @@ it defensible. Together: the change is compliant *and* provable.
 
 ## Making it smarter with an LLM (without weakening it)
 
-An AI model can *help* — infer a change's compliance context, or spot issues the fixed checks
-miss — but only in a role that never blocks or approves. The rule: **LLMs propose, the
-deterministic gates dispose, a human owns the judgment calls.** The model's draft is recorded
-as an *advisory* note and a human confirms it before it counts. See
-[docs/LLM-LAYER.md](./docs/LLM-LAYER.md) — it runs on your own Copilot model, with an optional
-headless GitHub Models / Azure AI Foundry detector for automated pull-request screening.
+An AI model *does* help — it reads the code and the docs and catches the long tail the fixed
+checks miss. The trick is the role: the deterministic gates are the **floor** (they can't
+regress or be talked down); the model is the **ceiling** — it can *add* findings and *raise* the
+verdict, but never clear a gate's block. When the model finds something, the review fires for
+you, you decide, and the decision is logged — and confirmed findings become new permanent rules
+over time (the **learning loop**). You even get a scorecard proving the model catches more, and
+an eval measuring the model itself before you trust it. It runs on your own Copilot model, with
+an optional Azure AI Foundry / GitHub Models detector for automated pull-request screening. See
+[docs/LLM-LAYER.md](./docs/LLM-LAYER.md).
+
+You can call the whole thing as **GitHub Copilot agents** — pick *Compliance Reviewer / Advisor
+/ Test Author / AI Act Baseline*, or the *Compliance Spine* orchestrator, with `/agent`.
 
 ## What it is **not** (honest limits)
 

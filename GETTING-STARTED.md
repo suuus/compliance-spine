@@ -58,6 +58,7 @@ compliance-spine export CHANGE_ID --out bundle.json   # audit / DSAR bundle
 compliance-spine scan-diff --staged                   # code gates on the staged diff
 compliance-spine llm-review CHANGE.json               # gates (floor) + assessor (ceiling)
 compliance-spine scorecard                            # recall lift vs. gates-only
+compliance-spine assess-eval                          # ZAVA on the assessor: its own recall / precision
 compliance-spine adjudicate FINDING_ID --outcome confirmed --human you --signature s
 compliance-spine learn                                # findings: confirmed / dismissed / pending
 ```
@@ -97,6 +98,12 @@ is an optional add-on for unattended CI or an independent reviewer. LLMs propose
 - **Evidence** — schema-validated, hash-chained ledger + ghost-decision detector.
 - **4 agents** — coding-advisor, test-author, quality-reviewer, ai-act-baseline.
 - **ZAVA** — 100-case suite (native + DeepEval), recall 1.00 / FPR 0.00, per-gate.
+- **LLM layer** — a layered reviewer (deterministic gates as the fail-closed floor ∪ a pluggable
+  assessor as the ceiling), a recall scorecard, an assessor eval (`assess-eval`), metadata
+  propose/confirm, and a learning loop (`adjudicate` / `learn`) that turns confirmed findings
+  into new rules.
+- **Callable Copilot agents** — the four agents + a Compliance Spine orchestrator as `/agent`
+  entries (`.github/agents/`).
 - **Confidentiality leak-guard** — hashed denylist; runs in pre-commit and CI.
 
 ## Make it yours

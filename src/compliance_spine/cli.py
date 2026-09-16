@@ -222,6 +222,19 @@ def _cmd_scorecard(_a: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def _cmd_assess_eval(a: argparse.Namespace) -> int:
+    from compliance_spine.llm.assessor_eval import evaluate
+
+    thresholds = {}
+    if a.recall_min is not None:
+        thresholds["recall_min"] = a.recall_min
+    if a.fpr_max is not None:
+        thresholds["fpr_max"] = a.fpr_max
+    report = evaluate(thresholds=thresholds or None)
+    print(report.render())
+    return 0 if report.passed else 1
+
+
 def _cmd_adjudicate(a: argparse.Namespace) -> int:
     from compliance_spine.learning import adjudicate
 
@@ -362,6 +375,11 @@ def build_parser() -> argparse.ArgumentParser:
         "scorecard", help="measure recall lift: gates only vs. gates + assessor"
     )
     p_sc.set_defaults(func=_cmd_scorecard)
+
+    p_ae = sub.add_parser("assess-eval", help="ZAVA on the assessor: its own recall / precision")
+    p_ae.add_argument("--recall-min", dest="recall_min", type=float, default=None)
+    p_ae.add_argument("--fpr-max", dest="fpr_max", type=float, default=None)
+    p_ae.set_defaults(func=_cmd_assess_eval)
 
     p_adj = sub.add_parser("adjudicate", help="record a human decision on an assessor finding")
     p_adj.add_argument("finding_id", metavar="FINDING_ID")

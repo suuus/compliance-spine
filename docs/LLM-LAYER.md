@@ -68,6 +68,7 @@ blocks.
 ```bash
 compliance-spine llm-review CHANGE.json   # gates (floor) union assessor (ceiling), fail-closed
 compliance-spine scorecard                # measure the recall lift vs. gates-only
+compliance-spine assess-eval              # ZAVA on the assessor: its own recall / precision
 ```
 
 Assessors are pluggable (`compliance_spine.llm`):
@@ -87,6 +88,15 @@ thing. **That is how you earn trust in a probabilistic decider: measure it, watc
 gate its authority on the score.** Every assessor finding is recorded as an advisory Evidence
 entry (`actor.type: llm`) with its rationale — reproducible accountability comes from the record,
 not from determinism.
+
+### ZAVA on the assessor — measure the ceiling before you trust it
+
+The scorecard measures the *union*. `compliance-spine assess-eval` measures the **assessor
+alone**: its own recall and false-positive rate on the slice it's responsible for (the long-tail
+violations the gates don't cover, plus clean changes). It fails closed against thresholds
+(`--recall-min`, `--fpr-max`; default recall 1.0 / FPR 0.0), so a weak or drifting model can't
+quietly keep its authority — the same ZAVA discipline the gates get, now applied to the
+probabilistic layer. `zava/test_zava_assessor.py` runs it as a parametrised DeepEval suite.
 
 ## Recording and learning from probabilistic findings
 

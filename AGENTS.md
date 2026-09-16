@@ -27,6 +27,7 @@ compliance-spine verify                # verify the tamper-evident Evidence hash
 compliance-spine scan-diff --staged    # code gates on the staged diff (used by the pre-commit hook)
 compliance-spine llm-review CHANGE.json # gates (floor) + assessor (ceiling), union fail-closed
 compliance-spine scorecard             # recall lift: gates only vs. gates + assessor
+compliance-spine assess-eval           # ZAVA on the assessor: its own recall / precision
 compliance-spine diagnose              # ISEE coverage (Intent/Structure/Execution/Evidence)
 ```
 A **change** is a small JSON file (see `examples/`): `files` + a `metadata` block that

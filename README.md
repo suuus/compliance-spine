@@ -3,8 +3,10 @@
 **An ISEE-based agent that keeps agentic software development GDPR- and EU AI Act-accountable — by construction.**
 
 > Status: **running implementation** — installable Python package (`compliance_spine`)
-> with a CLI, an MCP server, 10 fail-closed gates, 4 agents, a hash-chained Evidence
-> ledger, and a 100-case ZAVA suite (recall 1.00 / FPR 0.00). See
+> with a CLI, an MCP server, 10 fail-closed gates, 4 deterministic agents (also callable as
+> GitHub Copilot `/agent` agents), a hash-chained Evidence ledger, a 100-case ZAVA suite
+> (recall 1.00 / FPR 0.00), and an LLM layer — a layered reviewer, a recall scorecard, and a
+> learning loop — that catches the long tail without weakening the fail-closed floor. See
 > [GETTING-STARTED](./GETTING-STARTED.md) to install and run `./scripts/demo.sh`.
 > **Not legal advice.** This agent *assists and evidences* compliance; it does not
 > certify it. A human owner (DPO / privacy engineer / legal) signs off. See
@@ -223,6 +225,31 @@ against production behaviour. A **ZAVA regression closes the gate** on the chang
 it — the eval suite is itself an enforcement input, and its scorecards land in Evidence.
 
 ---
+
+## The LLM layer — floor + ceiling, measured, and self-improving
+
+The deterministic gates are the **fail-closed floor**. Over them sits an optional **layered
+reviewer** whose ceiling is a pluggable assessor — your GitHub Copilot model, GitHub Models, or
+an Azure AI Foundry endpoint — that catches what fixed rules miss. The union is fail-closed: the
+assessor may add findings and raise the verdict, but never clear a gate's block, and a broken or
+prompt-injected response parses to no findings.
+
+- `llm-review` — gates (floor) ∪ assessor (ceiling), fail-closed. Findings are recorded with a
+  confidence; the review fires (block/escalate) and prints the exact `adjudicate` command.
+- `scorecard` — the union's recall lift vs. gates-only.
+- `assess-eval` — **ZAVA on the assessor**: its own recall / precision, with thresholds, so you
+  gate how much authority a (probabilistic) assessor earns before you trust it.
+- `propose` — a model drafts a change's compliance metadata; recorded as an advisory proposal,
+  previewed by the gates, confirmed by a human.
+
+**The learning loop.** A human logs a decision on a finding with `adjudicate` (even when no gate
+caught it); `learn` turns confirmed findings into candidates for a new gate + ZAVA case. The LLM
+finds the long tail, a human labels it, and confirmed labels become permanent deterministic
+rules. See [docs/LLM-LAYER.md](./docs/LLM-LAYER.md).
+
+The four agents are also **callable GitHub Copilot agents** (`.github/agents/*.agent.md`): pick
+*Compliance Reviewer / Advisor / Test Author / AI Act Baseline* or the *Compliance Spine*
+orchestrator with `/agent`.
 
 ## 6. Human-in-the-loop & accountability
 
