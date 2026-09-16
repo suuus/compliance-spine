@@ -41,6 +41,7 @@ Execution (4 agents on real code)  →  Evidence (hash-chained log + detector)
 compliance-spine intent            # the never-delegate list (Intent)
 compliance-spine doctor            # every gate traces to a principle (Structure -> Intent)
 compliance-spine check CHANGE.json # run the fail-closed gates, emit Evidence
+compliance-spine propose CHANGE.json   # advisory LLM metadata proposal + non-binding preview
 compliance-spine advise CHANGE.json    # coding-advisor: remediation guidance
 compliance-spine tests  CHANGE.json    # test-author: recommended compliance tests
 compliance-spine review CHANGE.json    # quality-reviewer: verdict (+ Evidence)
@@ -77,6 +78,13 @@ pip install pre-commit && pre-commit install
 A commit that logs personal data, hardcodes a secret, or reads PII from a restricted
 component is now blocked locally. CI runs the same check on the PR diff against its base
 branch (`compliance-spine scan-diff --base origin/<base>`).
+
+## Make it smarter (optional LLM layer)
+The enforcement is deterministic on purpose. An LLM can help *propose* — infer a change's
+compliance context, spot the long tail — as long as it never gates. See
+[docs/LLM-LAYER.md](./docs/LLM-LAYER.md): the draft-and-confirm flow runs on your own Copilot
+model (`compliance-spine propose`), and a headless **GitHub Models / Azure AI Foundry** detector
+is an optional add-on for unattended CI or an independent reviewer. LLMs propose; gates dispose.
 
 ## What's implemented
 - **10 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,

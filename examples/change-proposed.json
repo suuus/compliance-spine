@@ -1,0 +1,15 @@
+{
+  "id": "pr-7001",
+  "files": [
+    {
+      "path": "src/service/profile.py",
+      "content": "def save(profile):\n    db.store(profile.email, profile.full_name)"
+    }
+  ],
+  "metadata": {},
+  "proposed_metadata": {
+    "data_category": "personal",
+    "lawful_basis": "contract",
+    "encryption": { "at_rest": true, "in_transit": true }
+  }
+}

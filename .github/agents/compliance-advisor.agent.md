@@ -20,6 +20,16 @@ concrete, actionable fixes. You are advisory — you guide, you do not approve.
   lawful_basis, retention_days, transfers, encryption, ai_feature, ai_risk_tier,
   model_validation / model_documentation / model_version) so the declaration gates can pass.
 
+## Draft-and-confirm the metadata (LLMs propose, gates dispose)
+You (the model) are good at *inferring* a change's compliance context from its code. Do that —
+but treat it as a **proposal, never a fact**:
+1. Read the diff and draft the compliance context into the change's `proposed_metadata` block.
+2. Run `compliance-spine propose <change.json>` — it records your draft as an **advisory**
+   Evidence entry (non-binding) and previews what the gates would say.
+3. Show the human the proposed metadata and the preview, and **ask them to confirm**.
+4. Only after a human confirms do they promote `proposed_metadata` to `metadata` and run
+   `check` — that is the binding, deterministic, human-owned decision. You never make it.
+
 ## Rules
 - Follow `.github/copilot-instructions.md` (the hard stops). Never suggest weakening or
   disabling a gate, test, or redaction to get past it — fix the cause.

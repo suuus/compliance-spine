@@ -65,6 +65,26 @@ def _cmd_check(a: argparse.Namespace) -> int:
     return 0 if result.allowed else 1
 
 
+def _cmd_propose(a: argparse.Namespace) -> int:
+    from compliance_spine.proposals import propose
+
+    change = Change.from_json_file(a.change)
+    preview = propose(change, model_ref=a.model)
+    print(f"advisory LLM proposal recorded: {preview.proposal_id} (model={a.model}) — NON-BINDING")
+    if preview.proposed_metadata:
+        import json
+
+        print(f"proposed metadata: {json.dumps(preview.proposed_metadata)}")
+    else:
+        print("proposed metadata: (none — put the LLM's draft in the change's "
+              "'proposed_metadata' block)")
+    print("\nPREVIEW — what the gates would say if a human confirms this metadata:")
+    print(preview.result.summary())
+    print("\nThis is advisory only. To make it binding, a human moves proposed_metadata -> "
+          "metadata and runs 'check'.")
+    return 0
+
+
 def _cmd_override(a: argparse.Namespace) -> int:
     from compliance_spine import human
 
@@ -230,6 +250,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_check.add_argument("change", help="path to a change JSON file")
     p_check.add_argument("--phase", choices=["build", "run"], default="build")
     p_check.set_defaults(func=_cmd_check)
+
+    p_prop = sub.add_parser(
+        "propose", help="record an advisory LLM metadata proposal + non-binding preview"
+    )
+    p_prop.add_argument("change", help="change JSON with a 'proposed_metadata' block")
+    p_prop.add_argument("--model", default="copilot", help="model/prompt reference for the record")
+    p_prop.set_defaults(func=_cmd_propose)
 
     p_ov = sub.add_parser("override", help="silence a blocking gate for a bounded window")
     p_ov.add_argument("change", help="path to a change JSON file")

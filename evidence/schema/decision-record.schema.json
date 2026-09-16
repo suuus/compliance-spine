@@ -14,7 +14,7 @@
       "additionalProperties": false,
       "required": ["type", "id"],
       "properties": {
-        "type": { "type": "string", "enum": ["agent", "human", "gate", "system"] },
+        "type": { "type": "string", "enum": ["agent", "human", "gate", "system", "llm"] },
         "id": { "type": "string" }
       }
     },

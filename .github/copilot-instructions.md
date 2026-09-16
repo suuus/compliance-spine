@@ -28,6 +28,10 @@ State it explicitly; if you can't answer, ask — don't assume:
 - Does it cross a region boundary? Transfer mechanism?
 - Is there an AI feature? Its EU AI Act risk tier?
 
+You may *infer* this context from the code and **propose** it (`proposed_metadata` +
+`compliance-spine propose`), but an inferred declaration is a proposal, not a fact: a human
+confirms it before it becomes binding. The LLM proposes; the deterministic gates dispose.
+
 When proposing a change through the spine, emit the `metadata` block (data_category,
 lawful_basis, retention_days, transfers, encryption, ai_feature, ai_risk_tier, component) so
 the gates can evaluate it, then run `compliance-spine check`.

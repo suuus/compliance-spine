@@ -163,6 +163,15 @@ flowchart TD
 Instructions alone are just hope; the gates are what make it real; the evidence is what makes
 it defensible. Together: the change is compliant *and* provable.
 
+## Making it smarter with an LLM (without weakening it)
+
+An AI model can *help* — infer a change's compliance context, or spot issues the fixed checks
+miss — but only in a role that never blocks or approves. The rule: **LLMs propose, the
+deterministic gates dispose, a human owns the judgment calls.** The model's draft is recorded
+as an *advisory* note and a human confirms it before it counts. See
+[docs/LLM-LAYER.md](./docs/LLM-LAYER.md) — it runs on your own Copilot model, with an optional
+headless GitHub Models / Azure AI Foundry detector for automated pull-request screening.
+
 ## What it is **not** (honest limits)
 
 - **It is not legal advice, and it does not certify compliance.** It *assists and evidences*

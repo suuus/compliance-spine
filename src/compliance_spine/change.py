@@ -40,6 +40,8 @@ class Change:
     id: str
     files: list[ChangeFile] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
+    #: LLM-drafted compliance context, awaiting human confirmation (never binding on its own).
+    proposed_metadata: dict = field(default_factory=dict)
 
     def payload_hash(self) -> str:
         return sha256_hex(canonical_json(asdict(self)))
@@ -51,7 +53,12 @@ class Change:
     @classmethod
     def from_dict(cls, data: dict) -> Change:
         files = [ChangeFile(**f) for f in data.get("files", [])]
-        return cls(id=data["id"], files=files, metadata=data.get("metadata", {}))
+        return cls(
+            id=data["id"],
+            files=files,
+            metadata=data.get("metadata", {}),
+            proposed_metadata=data.get("proposed_metadata", {}),
+        )
 
     @classmethod
     def from_json_file(cls, path: str | Path) -> Change:
