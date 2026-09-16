@@ -1,4 +1,4 @@
-# The LLM layer — reasoning that proposes, gates that dispose
+# The LLM layer — reasoning that proposes and assesses, gates that dispose
 
 The spine's enforcement is **deterministic** on purpose: fail-closed gates, a hash-chained
 Evidence ledger, and a repeatable eval (ZAVA). An LLM can make it *smarter* — but only in a
@@ -129,7 +129,9 @@ doesn't fit:
 3. **Reviewer independence** — the model that *wrote* the code sharing the compliance review
    shares its blind spots; a different, pinned reviewer model catches correlated mistakes.
 
-Two in-ecosystem options, both **advisory-only** (they never gate):
+Two in-ecosystem options for that headless detector, both **advisory** — their findings are
+recorded as advisory Evidence for a human to adjudicate; like any assessor they can raise a
+review's verdict but never clear a gate's block:
 
 - **GitHub Models** — simplest; stays inside GitHub, no separate infra.
 - **Azure AI Foundry** — when you need **data residency, network isolation, private endpoints,

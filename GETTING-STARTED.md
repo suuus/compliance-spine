@@ -85,11 +85,15 @@ component is now blocked locally. CI runs the same check on the PR diff against 
 branch (`compliance-spine scan-diff --base origin/<base>`).
 
 ## Make it smarter (optional LLM layer)
-The enforcement is deterministic on purpose. An LLM can help *propose* — infer a change's
-compliance context, spot the long tail — as long as it never gates. See
-[docs/LLM-LAYER.md](./docs/LLM-LAYER.md): the draft-and-confirm flow runs on your own Copilot
-model (`compliance-spine propose`), and a headless **GitHub Models / Azure AI Foundry** detector
-is an optional add-on for unattended CI or an independent reviewer. LLMs propose; gates dispose.
+The deterministic gates are the fail-closed **floor**. An LLM adds a **ceiling** — a layered
+reviewer that reads the code and the docs and catches the long tail the fixed rules miss. The
+union is fail-closed: the assessor can *raise* the verdict (add a block/escalate) but never
+*clear* a gate's block, and a human owns the judgment calls. See
+[docs/LLM-LAYER.md](./docs/LLM-LAYER.md): `llm-review` runs floor ∪ ceiling, `scorecard` proves
+the recall lift, `assess-eval` measures the assessor itself, `propose` drafts change metadata for
+a human to confirm, and `adjudicate` / `learn` turn confirmed findings into new gates. It runs on
+your own Copilot model, with an optional headless **GitHub Models / Azure AI Foundry** detector
+for unattended CI or an independent reviewer.
 
 ## What's implemented
 - **10 fail-closed gates** — no-PII-in-logs, lawful basis, special category, retention,
