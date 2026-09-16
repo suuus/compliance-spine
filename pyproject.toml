@@ -42,6 +42,8 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.ruff.lint.per-file-ignores]
 # The DeepEval tests must set env vars and importorskip before importing deepeval.
 "zava/test_*.py" = ["E402"]
+# Emitted pytest template strings carry docstrings that read best on one line.
+"src/compliance_spine/agents/test_templates.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "zava"]

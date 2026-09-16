@@ -45,6 +45,8 @@ class TestAuthorAgent(Agent):
     name = "test-author"
 
     def run(self, change: Change) -> AgentResult:
+        from compliance_spine.agents.test_templates import TEMPLATES, select
+
         gates = _applicable(change)
         stubs: dict[str, str] = {}
         items: list[str] = []
@@ -52,7 +54,19 @@ class TestAuthorAgent(Agent):
             fn, code = _stub(gate, change.id)
             stubs[fn] = code
             items.append(f"{fn}  (covers {gate})")
-        verdict = f"{len(gates)} compliance test(s) recommended"
+
+        templates = {key: TEMPLATES[key] for key in select(change)}
+        for key in templates:
+            items.append(f"behavioural template: {key}")
+
+        verdict = (
+            f"{len(gates)} gate test(s) + {len(templates)} behavioural template(s) recommended"
+        )
         return AgentResult(
-            self.name, change.id, True, verdict, items, {"gates": gates, "stubs": stubs}
+            self.name,
+            change.id,
+            True,
+            verdict,
+            items,
+            {"gates": gates, "stubs": stubs, "templates": templates},
         )
