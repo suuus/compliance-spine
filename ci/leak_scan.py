@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Confidentiality leak-guard.
 
-The spine is built for a specific customer in a regulated domain, but *nothing* about
-that customer or domain may appear in this repository. This scanner enforces that.
+The spine is built for a specific customer. Its **identity** — names, codenames, and any
+customer-identifying specifics — must never appear in this repository. The regulated *sector*
+itself is allowed; only the customer's identity is protected.
 
 Design constraint: the guard must not itself fingerprint the domain it protects. An earlier
 version shipped SHA-256 of the forbidden terms — but SHA-256 of short dictionary words is
 trivially brute-forced from a wordlist, so the committed hashes would themselves leak the
-sector. So the built-in denylist ships **empty**, and the operative denylist is supplied
+protected terms. So the built-in denylist ships **empty**, and the operative denylist is supplied
 out-of-band as a plaintext pattern file via ``$COMPLIANCE_LEAK_PATTERNS_FILE`` (defaulting to
 a git-ignored ``.leakpatterns``). The denylist therefore lives entirely outside the committed
 artifact. Callers/tests may still pass an explicit ``hashes`` set to :func:`scan_text`.
@@ -27,7 +28,7 @@ from pathlib import Path
 
 # Intentionally empty: see the module docstring. The real denylist is supplied out-of-band
 # via COMPLIANCE_LEAK_PATTERNS_FILE (git-ignored), so nothing in this file can be reversed to
-# recover the customer/domain terms.
+# recover the customer-identity terms.
 BUILTIN_HASHES: frozenset[str] = frozenset()
 
 DEFAULT_EXCLUDE_DIRS = frozenset(
@@ -162,9 +163,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         for f in findings:
             print(f"  - {f.render()}", file=sys.stderr)
-        print("\nRemove customer/domain references before committing.", file=sys.stderr)
+        print("\nRemove customer-identity references before committing.", file=sys.stderr)
         return 1
-    print("LEAK-GUARD: clean — no customer/domain references found.")
+    print("LEAK-GUARD: clean — no customer-identity references found.")
     return 0
 
 

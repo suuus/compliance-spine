@@ -49,10 +49,11 @@ This repo defines five selectable agents in `.github/agents/` — pick them with
 spine and never self-approves a never-delegate item.
 
 ## Confidentiality (hard rule)
-This spine was built for a specific customer in a regulated domain. **Nothing about that
-customer or domain may appear in any file** — code, docs, tests, examples, or commit
-messages. Keep everything generic (article references + generic categories only). The
-leak-guard (`ci/leak_scan.py`) enforces this in pre-commit and CI; keep it green.
+This spine was built for a specific customer. **The customer's identity — names, codenames,
+and customer-specific details — must never appear in any file** (code, docs, tests, examples,
+or commit messages). The regulated *sector* itself is allowed;
+only the customer's identity is protected. The leak-guard (`ci/leak_scan.py`) enforces this in
+pre-commit and CI; keep it green.
 
 ## Definition of done for any change
 - `ruff check .` clean · `pytest` green · `python ci/leak_scan.py .` clean.

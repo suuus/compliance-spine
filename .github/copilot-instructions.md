@@ -43,7 +43,7 @@ declaration is a proposal, not a fact — a human confirms it before it binds.
 - Unsure whether something is personal data, or which basis applies → treat it as personal, fail closed, ask the DPO.
 
 ## Confidentiality (this repo)
-- Keep any customer or domain identity out of code, docs, tests, and commit messages. The leak-guard enforces this — keep it green.
+- Keep any customer **identity** (names, codenames, customer-specific details) out of code, docs, tests, and commit messages — the regulated sector itself is fine. The leak-guard enforces this — keep it green.
 
 ---
 *Depth on demand:* the `gdpr-ai-act-compliance` skill (`.github/skills/`) carries the full playbook;
