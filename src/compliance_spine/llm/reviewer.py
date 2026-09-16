@@ -57,9 +57,9 @@ class Assessor(Protocol):
 # ---------------------------------------------------------------------------
 
 _PII = (
-    "email", "ssn", "bsn", "nino", "full_name", "first_name", "last_name", "surname",
-    "phone", "dob", "birthdate", "iban", "passport", "diagnosis", "medical_history",
-    "health_record", "ip_address", "address", "biometric",
+    "email", "ssn", "bsn", "nino", "national_id", "full_name", "first_name", "last_name",
+    "surname", "phone", "dob", "birthdate", "iban", "passport", "diagnosis", "medical_history",
+    "medical_notes", "health_conditions", "health_record", "ip_address", "address", "biometric",
 )
 _PII_RE = re.compile(rf"\b(?:{'|'.join(_PII)})\b", re.I)
 _MODEL_CALL = re.compile(
@@ -68,6 +68,19 @@ _MODEL_CALL = re.compile(
 )
 _OUTBOUND = re.compile(
     r"\brequests?\.|httpx|urllib|\bfetch\s*\(|\.post\s*\(|\.put\s*\(|https?://", re.I
+)
+_SPECIAL_RE = re.compile(
+    r"\b(?:diagnosis|health_conditions|health_record|medical_notes|medical_history"
+    r"|biometric|ethnicity|religion|sexual_orientation)\b",
+    re.I,
+)
+_RESPONSE_CTX = re.compile(
+    r"\breturn\s*[\{\[]|jsonify\s*\(|\.json\s*\(|\bResponse\s*\(|res\.(?:send|json)\s*\(", re.I
+)
+_DECISION_ASSIGN = re.compile(
+    r"\b(?:decision|verdict|outcome)\s*=\s*['\"]?"
+    r"(?:approv|declin|reject|accept|denied?|eligible|ineligible)",
+    re.I,
 )
 
 
@@ -82,22 +95,37 @@ class HeuristicAssessor:
             for lineno, line in enumerate(f.content.splitlines(), start=1):
                 loc = f"{f.path}:{lineno}"
                 code, _, comment = line.partition("#")
-                if not _PII_RE.search(line):
-                    continue
+                code_pii = bool(_PII_RE.search(code))
+
                 if comment and _PII_RE.search(comment):
                     findings.append(Finding(
                         "pii-in-comment", "flag",
                         "personal data referenced in a comment / TODO", loc, confidence=0.55))
-                if _MODEL_CALL.search(code) and _PII_RE.search(code):
+
+                if code_pii and _MODEL_CALL.search(code):
                     findings.append(Finding(
                         "pii-to-model", "block",
                         "personal data sent to a model / prompt (Art 5, minimisation)", loc,
                         confidence=0.9))
-                elif _OUTBOUND.search(code) and _PII_RE.search(code):
+                elif code_pii and _OUTBOUND.search(code):
                     findings.append(Finding(
                         "undeclared-transfer", "flag",
                         "personal data in an outbound call — possible undeclared transfer", loc,
                         confidence=0.7))
+
+                if code_pii and _RESPONSE_CTX.search(code):
+                    special = bool(_SPECIAL_RE.search(code))
+                    findings.append(Finding(
+                        "pii-in-response", "flag",
+                        "personal data returned in a response — minimise / use a projection"
+                        + (" (special-category, Art 9)" if special else ""),
+                        loc, confidence=0.75 if special else 0.55))
+
+                if _DECISION_ASSIGN.search(code):
+                    findings.append(Finding(
+                        "automated-decision", "flag",
+                        "possible solely-automated decision — confirm a human-intervention "
+                        "path and explanation (Art 22)", loc, confidence=0.5))
         return findings
 
 
