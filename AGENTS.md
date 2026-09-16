@@ -35,6 +35,12 @@ This repo ships an MCP server (`compliance-spine-mcp`, registered as `compliance
 Prefer its tools over shelling out: `check_change`, `advise`, `recommend_tests`, `review`,
 `classify_ai_act_risk`, `verify_ledger`, `scan_ghosts`, `run_evals`, `list_intent`.
 
+## Callable agents (Copilot App / `/agent`)
+This repo defines five selectable agents in `.github/agents/` — pick them with `/agent`:
+**Compliance Spine** (the front door; routes to the rest), **Compliance Reviewer**,
+**Compliance Advisor**, **AI Act Baseline**, and **Compliance Test Author**. Each runs the
+spine and never self-approves a never-delegate item.
+
 ## Confidentiality (hard rule)
 This spine was built for a specific customer in a regulated domain. **Nothing about that
 customer or domain may appear in any file** — code, docs, tests, examples, or commit
