@@ -46,3 +46,6 @@ Use `compliance-spine <command>` (or `.venv/bin/compliance-spine <command>` if i
 PATH). Prefer the `review` MCP tool when available; otherwise the CLI. After a review, if the
 verdict is not "approve", summarise the fixes and offer to run the **Compliance Advisor** for
 remediation guidance.
+
+---
+*Rules source:* the `gdpr-ai-act-compliance` skill (`.github/skills/`) carries the GDPR / EU AI Act playbook; the compliance-spine gates enforce it, fail-closed.

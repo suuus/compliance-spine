@@ -45,3 +45,6 @@ but treat it as a **proposal, never a fact**:
 Use `compliance-spine <command>` (or `.venv/bin/compliance-spine <command>`). Show the real
 findings, then the fix. Hand off to the **Compliance Reviewer** when the change is ready for a
 verdict.
+
+---
+*Rules source:* the `gdpr-ai-act-compliance` skill (`.github/skills/`) carries the GDPR / EU AI Act playbook; the compliance-spine gates enforce it, fail-closed.

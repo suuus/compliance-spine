@@ -41,3 +41,6 @@ gates. You never approve a never-delegate item yourself — those go to the name
 ## How to run
 Use `compliance-spine <command>` (or `.venv/bin/compliance-spine <command>` if not on PATH),
 or the compliance-spine MCP tools. Show real output, never fabricated verdicts.
+
+---
+*Rules source:* the `gdpr-ai-act-compliance` skill (`.github/skills/`) carries the GDPR / EU AI Act playbook; the compliance-spine gates enforce it, fail-closed.

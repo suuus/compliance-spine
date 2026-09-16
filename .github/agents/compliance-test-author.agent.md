@@ -32,3 +32,6 @@ re-identification, undeclared transfers. Never drop a test the tool recommended.
 ## How to run
 Use `compliance-spine tests <path> --emit-stubs` (or `.venv/bin/compliance-spine ...`), or the
 `recommend_tests` MCP tool. Show the real output.
+
+---
+*Rules source:* the `gdpr-ai-act-compliance` skill (`.github/skills/`) carries the GDPR / EU AI Act playbook; the compliance-spine gates enforce it, fail-closed.

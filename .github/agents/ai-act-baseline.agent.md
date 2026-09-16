@@ -34,3 +34,6 @@ example**, and never downgrade the tool's tier without a named human.
 Use `compliance-spine ai-act <path>` (or `.venv/bin/compliance-spine ...`), or the
 `classify_ai_act_risk` MCP tool. For high-risk features, point the author at the missing
 obligations and offer the **Compliance Advisor** for how to satisfy them.
+
+---
+*Rules source:* the `gdpr-ai-act-compliance` skill (`.github/skills/`) carries the GDPR / EU AI Act playbook; the compliance-spine gates enforce it, fail-closed.
