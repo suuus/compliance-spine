@@ -1,0 +1,36 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "compliance-spine",
+  "description": "GDPR + EU AI Act compliance spine for agentic delivery — callable agents (advise / review / test-author / AI-Act baseline + orchestrator), the compliance skill, and the Compliance Dashboard canvas. Install once and your compliance agents + panel are available whenever you open a repo that has adopted the spine.",
+  "version": "0.1.0",
+  "author": {
+    "name": "suuus"
+  },
+  "repository": "https://github.com/suuus/compliance-spine",
+  "license": "MIT",
+  "keywords": [
+    "gdpr",
+    "eu-ai-act",
+    "compliance",
+    "custom-agents",
+    "canvas",
+    "evidence-ledger"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./.github/agents/compliance-spine.agent.md",
+        "./.github/agents/compliance-reviewer.agent.md",
+        "./.github/agents/compliance-advisor.agent.md",
+        "./.github/agents/compliance-test-author.agent.md",
+        "./.github/agents/ai-act-baseline.agent.md"
+      ],
+      "skills": [
+        "./.github/skills/gdpr-ai-act-compliance/"
+      ],
+      "extensions": [
+        "./.github/extensions/compliance-dashboard"
+      ]
+    }
+  }
+}

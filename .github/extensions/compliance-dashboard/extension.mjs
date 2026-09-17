@@ -13,7 +13,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { adjudicate, buildDashboard, setCwd } from "./data.mjs";
+import { adjudicate, buildDashboard, runAction, setCwd } from "./data.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -84,6 +84,17 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
+  if (req.method === "POST" && url.pathname === "/api/action") {
+    try {
+      const { name } = await readJson(req);
+      const result = runAction(name);
+      broadcast();
+      json(res, 200, { ...result, state: buildDashboard() });
+    } catch (err) {
+      json(res, 400, { error: err.message || String(err) });
+    }
+    return;
+  }
   if (url.pathname === "/") {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(fs.readFileSync(path.join(__dirname, "public", "index.html"), "utf8"));
@@ -143,6 +154,24 @@ const canvas = createCanvas({
         captureCwd(ctx);
         broadcast();
         return buildDashboard();
+      },
+    },
+    {
+      name: "run_action",
+      description: "Run a common spine command from the panel: refresh, verify, eval, ghosts, diagnose, scan-staged.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          name: { type: "string", enum: ["refresh", "verify", "eval", "ghosts", "diagnose", "scan-staged"] },
+        },
+        required: ["name"],
+        additionalProperties: false,
+      },
+      handler(ctx) {
+        captureCwd(ctx);
+        const result = runAction(ctx.input.name);
+        broadcast();
+        return result;
       },
     },
   ],

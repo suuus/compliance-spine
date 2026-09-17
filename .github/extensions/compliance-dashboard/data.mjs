@@ -2,6 +2,7 @@
 // so it is unit-testable outside the Copilot app. extension.mjs wires this to the canvas/HTTP.
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -10,15 +11,54 @@ let workspaceCwd = null;
 export function setCwd(dir) {
   if (typeof dir === "string" && dir.trim()) workspaceCwd = dir;
 }
-export function repoRoot() {
-  return workspaceCwd || process.env.COMPLIANCE_SPINE_ROOT || process.cwd();
+
+// Walk up from a starting dir to the repo that carries the spine (evidence/ledger or spine/).
+function findRootFrom(start) {
+  let dir = start;
+  for (let i = 0; i < 8 && dir; i++) {
+    if (fs.existsSync(path.join(dir, "evidence", "ledger")) || fs.existsSync(path.join(dir, "spine"))) {
+      return dir;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return start;
 }
 
-// Run the compliance-spine CLI at the repo root, pinning COMPLIANCE_SPINE_ROOT (needed when the
-// repo has no pyproject.toml). Returns a structured result; never throws.
+export function repoRoot() {
+  const base = workspaceCwd || process.env.COMPLIANCE_SPINE_ROOT || process.cwd();
+  return findRootFrom(base);
+}
+
+// The Copilot app launches the extension without the user's venv on PATH, so a bare
+// `compliance-spine` fails with ENOENT. Resolve the real binary: an explicit override, then the
+// project's venv (the adopter convention), then pipx, then PATH.
+export function resolveSpineBin(root = repoRoot()) {
+  const win = process.platform === "win32";
+  const bin = win ? "compliance-spine.exe" : "compliance-spine";
+  const venvBin = (dir) => path.join(dir, win ? "Scripts" : "bin", bin);
+  const candidates = [
+    process.env.COMPLIANCE_SPINE_BIN,
+    venvBin(path.join(root, ".venv")),
+    venvBin(path.join(root, ".spine-venv")),
+    path.join(os.homedir(), ".local", "bin", bin), // pipx / user install
+  ].filter(Boolean);
+  for (const c of candidates) {
+    try {
+      if (fs.existsSync(c)) return c;
+    } catch {
+      // ignore and try the next candidate
+    }
+  }
+  return "compliance-spine"; // last resort: rely on PATH
+}
+
+// Run the resolved compliance-spine CLI at the repo root, pinning COMPLIANCE_SPINE_ROOT (needed
+// when the repo has no pyproject.toml). Returns a structured result; never throws.
 export function spine(args, run = spawnSync) {
   const root = repoRoot();
-  const res = run("compliance-spine", args, {
+  const res = run(resolveSpineBin(root), args, {
     cwd: root,
     encoding: "utf8",
     env: { ...process.env, COMPLIANCE_SPINE_ROOT: root },
@@ -78,7 +118,7 @@ export function summarize(records) {
 export function matrixRows(runSpine = spine) {
   const out = runSpine(["matrix", "--json"]);
   if (!out.ok) {
-    return { available: false, rows: [], hint: out.missing ? "compliance-spine not on PATH" : out.stderr };
+    return { available: false, rows: [], hint: out.missing ? "compliance-spine not found" : out.stderr };
   }
   try {
     const parsed = JSON.parse(out.stdout);
@@ -96,8 +136,23 @@ export function ghostLines(runSpine = spine) {
 
 export function integrity(runSpine = spine) {
   const out = runSpine(["verify"]);
-  if (out.missing) return { available: false, ok: null, detail: "compliance-spine not on PATH" };
+  if (out.missing) return { available: false, ok: null, detail: "compliance-spine not found" };
   return { available: true, ok: out.ok, detail: (out.stdout || out.stderr).split("\n")[0] || "" };
+}
+
+// What the extension resolved — surfaced in the UI so a "no findings / not on PATH" problem is
+// diagnosable at a glance (is the root right? is the binary found? is the ledger there?).
+export function environmentInfo() {
+  const root = repoRoot();
+  const bin = resolveSpineBin(root);
+  const lp = ledgerPath();
+  return {
+    root,
+    bin,
+    binResolved: bin !== "compliance-spine",
+    ledgerPath: lp,
+    ledgerFound: fs.existsSync(lp),
+  };
 }
 
 export function buildDashboard(deps = {}) {
@@ -106,7 +161,7 @@ export function buildDashboard(deps = {}) {
   const recent = records.slice(-200).reverse();
   return {
     updatedAt: new Date().toISOString(),
-    repoRoot: repoRoot(),
+    env: deps.env || environmentInfo(),
     counts: summarize(records),
     ledgerSize: records.length,
     integrity: integrity(runSpine),
@@ -149,7 +204,38 @@ export function adjudicate(input, runSpine = spine) {
   if (reason) args.push("--reason", reason);
   const out = runSpine(args);
   if (!out.ok) {
-    throw new Error(out.missing ? "compliance-spine not on PATH" : out.stderr || out.stdout || "adjudicate failed");
+    throw new Error(
+      out.missing
+        ? "compliance-spine not found (activate the venv or set COMPLIANCE_SPINE_BIN)"
+        : out.stderr || out.stdout || "adjudicate failed",
+    );
   }
   return { ok: true, detail: out.stdout };
+}
+
+// Whitelisted "run a common spine command" for the panel's action buttons — no arbitrary args.
+const ACTIONS = {
+  verify: ["verify"],
+  eval: ["eval"],
+  ghosts: ["ghosts"],
+  diagnose: ["diagnose"],
+  "scan-staged": ["scan-diff", "--staged"],
+};
+
+export function actionNames() {
+  return ["refresh", ...Object.keys(ACTIONS)];
+}
+
+export function runAction(name, runSpine = spine) {
+  if (name === "refresh") return { ok: true, name, output: "refreshed" };
+  const args = ACTIONS[name];
+  if (!args) throw new Error(`unknown action: ${name}`);
+  const out = runSpine(args);
+  return {
+    ok: out.ok,
+    name,
+    code: out.code,
+    missing: out.missing,
+    output: (out.stdout || out.stderr || (out.missing ? "compliance-spine not found" : "")).slice(0, 6000),
+  };
 }

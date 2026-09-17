@@ -53,6 +53,16 @@
   .empty { color: var(--muted); padding: 24px; text-align: center; }
   .hide { display: none; }
   .err { color: var(--bad); }
+  #toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    padding: 8px 16px; border-bottom: 1px solid var(--border); background: #0f141b; }
+  #toolbar button { background: var(--panel); color: var(--fg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 4px 10px; cursor: pointer; font: inherit; }
+  #toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+  #env { font-size: 11px; }
+  #env .bad { color: var(--bad); }
+  #env .ok { color: var(--ok); }
+  #actionOut { margin: 0; padding: 10px 16px; white-space: pre-wrap; color: var(--muted);
+    border-bottom: 1px solid var(--border); max-height: 220px; overflow: auto; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -69,6 +79,17 @@
   <button data-tab="matrix">Matrix</button>
   <button data-tab="ghosts">Ghosts</button>
 </nav>
+<div id="toolbar">
+  <button data-action="refresh">↻ Refresh</button>
+  <button data-action="scan-staged">Scan staged</button>
+  <button data-action="verify">Verify ledger</button>
+  <button data-action="eval">Run ZAVA</button>
+  <button data-action="ghosts">Scan ghosts</button>
+  <button data-action="diagnose">Diagnose</button>
+  <span class="spacer"></span>
+  <span id="env" class="muted"></span>
+</div>
+<pre id="actionOut" class="hide"></pre>
 <main>
   <section id="evidence"></section>
   <section id="adjudicate" class="hide"></section>
@@ -182,9 +203,42 @@
       .map((k) => `<span>${k} <b>${c[k] || 0}</b></span>`).join("");
   }
 
+  function renderEnv() {
+    const e = (state && state.env) || {};
+    const el = $("env");
+    const cli = e.binResolved ? '<span class="ok">✓ cli</span>' : '<span class="bad">⚠ cli on PATH?</span>';
+    const led = e.ledgerFound ? '<span class="ok">✓ ledger</span>' : '<span class="bad">⚠ no ledger</span>';
+    el.innerHTML = `${cli} · ${led} · <span title="${esc(e.root)}">${esc(shortPath(e.root))}</span>`;
+    el.title = `cli: ${e.bin || "?"}\nledger: ${e.ledgerPath || "?"}`;
+  }
+  function shortPath(p) {
+    if (!p) return "?";
+    const parts = String(p).split("/");
+    return parts.length > 2 ? "…/" + parts.slice(-2).join("/") : p;
+  }
+
+  async function runAction(name) {
+    const out = $("actionOut");
+    out.classList.remove("hide");
+    out.textContent = "running " + name + " …";
+    try {
+      const res = await fetch("/api/action", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json();
+      if (data.error) { out.textContent = "error: " + data.error; return; }
+      out.textContent = (`${data.name} ${data.ok ? "✓" : "✗ (exit " + data.code + ")"}\n\n${data.output || ""}`).trim();
+      if (data.state) { state = data.state; render(); }
+    } catch (e) { out.textContent = "error: " + e.message; }
+  }
+
+  document.querySelectorAll("#toolbar button[data-action]").forEach((b) =>
+    b.addEventListener("click", () => runAction(b.dataset.action)));
+
   function render() {
     if (!state) return;
-    renderIntegrity(); renderCounts(); renderEvidence(); renderAdjudicate(); renderMatrix(); renderGhosts();
+    renderEnv(); renderIntegrity(); renderCounts(); renderEvidence(); renderAdjudicate(); renderMatrix(); renderGhosts();
   }
 
   async function adjudicate(finding_id, outcome) {

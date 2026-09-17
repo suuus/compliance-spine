@@ -95,6 +95,20 @@ or ensure the venv is on `PATH`). The `[mcp]` dependency tree (mcp / starlette) 
 app's own web deps, so for an app you're governing, consider installing the spine tooling in a
 **dedicated venv** (or via `pipx`) rather than the app's runtime environment.
 
+## Install everything in the GitHub Copilot app (plugin)
+`plugin.json` (at the repo root) bundles the **callable agents + the compliance skill + the
+Compliance Dashboard canvas** as one plugin, so installing it once makes your agents and the panel
+available whenever you open a repo that has adopted the spine.
+
+```bash
+copilot plugin install suuus/compliance-spine     # CLI; or in the app: Customize → Plugins
+```
+In the GitHub Copilot **app**, open **Customize → Plugins** (add the repo / a custom marketplace),
+or install the canvas alone by pasting the folder URL
+`https://github.com/suuus/compliance-spine/tree/main/.github/extensions/compliance-dashboard`.
+Then invoke agents with `/agent compliance-spine` and open the panel with *"Open the Compliance
+Dashboard canvas"*. (MCP servers and skills declared in the repo also auto-load in the app.)
+
 ## Enforce on every commit
 Instructions (`.github/copilot-instructions.md`) tell Copilot what to do; this makes it
 *enforced*. Install the hook so the code-scanning gates run on every commit:

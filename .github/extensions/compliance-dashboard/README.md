@@ -10,8 +10,25 @@ that gives the compliance spine a UI in the app's side panel:
 - **Compliance matrix** — regulation → article → gate → coverage, from `compliance-spine matrix --json`.
 - **Ghosts + integrity** — unowned decisions (`compliance-spine ghosts`) and a ledger-intact badge
   (`compliance-spine verify`).
+- **Action buttons** — a toolbar to run common commands from the panel (Refresh, Scan staged,
+  Verify ledger, Run ZAVA, Scan ghosts, Diagnose); output shows inline.
+- **Resolution diagnostic** — the header shows whether the CLI + ledger were found and which repo
+  root resolved, so a "no findings" problem is diagnosable at a glance.
 
 Live-updates over SSE; read-mostly (all writes go through the CLI).
+
+## Finding the `compliance-spine` CLI (important)
+The Copilot app launches the extension **without your venv on `PATH`**, so a bare `compliance-spine`
+fails. The extension resolves the binary automatically, in order:
+1. `$COMPLIANCE_SPINE_BIN` (explicit override),
+2. `<repo>/.venv/bin/compliance-spine` then `<repo>/.spine-venv/bin/compliance-spine` (the adopter
+   convention),
+3. `~/.local/bin/compliance-spine` (pipx),
+4. bare `compliance-spine` on `PATH`.
+
+If the header shows **⚠ cli on PATH?**, set `COMPLIANCE_SPINE_BIN` to the absolute binary path (or
+`pipx install "compliance-spine[mcp]"` for a global one). The evidence feed reads the ledger file
+directly, so findings show even before the CLI resolves; matrix/ghosts/verify/adjudicate need it.
 
 ## Use it
 This ships in the repo under `.github/extensions/` (project scope), so the GitHub Copilot app

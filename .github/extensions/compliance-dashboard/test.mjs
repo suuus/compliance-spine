@@ -27,7 +27,11 @@ assert.deepEqual(pending.map((r) => r.id), ["evt_b"], "only un-adjudicated llm/*
 
 assert.deepEqual(d.summarize(LEDGER), { block: 2, allow: 0, emit: 2, override: 0, escalate: 0 });
 
-const dash = d.buildDashboard({ spine: fakeSpine, readLedger: () => LEDGER });
+const dash = d.buildDashboard({
+  spine: fakeSpine,
+  readLedger: () => LEDGER,
+  env: { root: "/repo", bin: "/repo/.venv/bin/compliance-spine", binResolved: true, ledgerFound: true },
+});
 assert.equal(dash.ledgerSize, 4);
 assert.equal(dash.evidence.length, 4);
 assert.equal(dash.pending.length, 1);
@@ -49,6 +53,18 @@ assert.equal(res.ok, true);
 assert.deepEqual(calls[0].slice(0, 5), ["adjudicate", "evt_b", "--outcome", "confirmed", "--human"]);
 
 assert.throws(() => d.adjudicate({ finding_id: "evt_b", outcome: "nope" }, okAdj), /confirmed\|dismissed/);
-assert.throws(() => d.adjudicate({ finding_id: "evt_b", outcome: "confirmed" }, () => ({ ok: false, missing: true })), /not on PATH/);
+assert.throws(() => d.adjudicate({ finding_id: "evt_b", outcome: "confirmed" }, () => ({ ok: false, missing: true })), /not found/);
+
+// action buttons: whitelisted commands only, missing-CLI surfaced cleanly
+assert.deepEqual(d.actionNames(), ["refresh", "verify", "eval", "ghosts", "diagnose", "scan-staged"]);
+const okRun = (a) => ({ ok: true, code: 0, stdout: "[OK] " + a.join(" "), stderr: "" });
+assert.equal(d.runAction("refresh").ok, true);
+assert.ok(d.runAction("verify", okRun).output.startsWith("[OK] verify"));
+assert.throws(() => d.runAction("rm -rf /", okRun), /unknown action/);
+assert.equal(d.runAction("verify", () => ({ ok: false, missing: true, stdout: "", stderr: "" })).missing, true);
+
+// binary resolution prefers a repo venv over bare PATH
+const bin = d.resolveSpineBin("/definitely/not/a/real/repo/xyz");
+assert.equal(bin, "compliance-spine", "falls back to PATH when no venv/override present");
 
 console.log("compliance-dashboard data layer: all assertions passed");
