@@ -133,6 +133,9 @@ for unattended CI or an independent reviewer.
   entries (`.github/agents/`).
 - **Installable skill** — `.github/skills/gdpr-ai-act-compliance/` packages the GDPR + EU AI Act
   guidance as a Copilot skill that also tells the agent to run the spine when present.
+- **Copilot app canvas** — `.github/extensions/compliance-dashboard/` renders the evidence feed,
+  adjudication queue, compliance matrix, and ghosts in the app side panel (open it with
+  *"Open the Compliance Dashboard canvas"*); adjudications write through the CLI.
 - **Confidentiality leak-guard** — hashed denylist; runs in pre-commit and CI.
 
 ## Make it yours

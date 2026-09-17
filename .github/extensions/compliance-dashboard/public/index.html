@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Compliance Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --fg: #e6edf3; --muted: #8b949e;
+    --accent: #58a6ff; --ok: #3fb950; --warn: #d29922; --bad: #f85149; --info: #a5a5f5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 { font-size: 14px; margin: 0; letter-spacing: .3px; }
+  .spacer { flex: 1; }
+  .badge { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); font-size: 11px; }
+  .badge.ok { color: var(--ok); border-color: var(--ok); }
+  .badge.bad { color: var(--bad); border-color: var(--bad); }
+  .badge.muted { color: var(--muted); }
+  .counts span { margin-right: 10px; color: var(--muted); }
+  .counts b { color: var(--fg); }
+  nav { display: flex; gap: 4px; padding: 8px 16px 0; border-bottom: 1px solid var(--border); }
+  nav button { background: none; border: none; color: var(--muted); padding: 8px 12px;
+    cursor: pointer; border-bottom: 2px solid transparent; font: inherit; }
+  nav button.active { color: var(--fg); border-bottom-color: var(--accent); }
+  main { padding: 12px 16px; }
+  .row { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 12px; margin-bottom: 8px; }
+  .row .head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); }
+  .tag.block { color: var(--bad); border-color: var(--bad); }
+  .tag.allow { color: var(--ok); border-color: var(--ok); }
+  .tag.emit, .tag.escalate { color: var(--info); border-color: var(--info); }
+  .tag.override { color: var(--warn); border-color: var(--warn); }
+  .rule { color: var(--accent); }
+  .muted { color: var(--muted); }
+  .finding { margin: 4px 0 0 14px; color: var(--muted); }
+  .finding .loc { color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .status-enforced { color: var(--ok); }
+  .status-gap, .status-no-gate { color: var(--warn); }
+  button.act { background: var(--panel); color: var(--fg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 3px 10px; cursor: pointer; font: inherit; }
+  button.act.confirm:hover { border-color: var(--bad); color: var(--bad); }
+  button.act.dismiss:hover { border-color: var(--ok); color: var(--ok); }
+  input.rev { background: var(--bg); border: 1px solid var(--border); color: var(--fg);
+    border-radius: 4px; padding: 3px 8px; font: inherit; }
+  .empty { color: var(--muted); padding: 24px; text-align: center; }
+  .hide { display: none; }
+  .err { color: var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛡 Compliance Dashboard</h1>
+  <span id="integrity" class="badge muted">ledger …</span>
+  <span class="counts" id="counts"></span>
+  <span class="spacer"></span>
+  <label class="muted">reviewer <input id="reviewer" class="rev" placeholder="your name" /></label>
+</header>
+<nav>
+  <button data-tab="evidence" class="active">Evidence</button>
+  <button data-tab="adjudicate">Adjudicate <span id="pcount" class="tag"></span></button>
+  <button data-tab="matrix">Matrix</button>
+  <button data-tab="ghosts">Ghosts</button>
+</nav>
+<main>
+  <section id="evidence"></section>
+  <section id="adjudicate" class="hide"></section>
+  <section id="matrix" class="hide"></section>
+  <section id="ghosts" class="hide"></section>
+</main>
+
+<script>
+  let state = null;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  document.querySelectorAll("nav button").forEach((b) =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll("nav button").forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+      ["evidence", "adjudicate", "matrix", "ghosts"].forEach((t) =>
+        $(t).classList.toggle("hide", t !== b.dataset.tab));
+    }));
+
+  function findingsHtml(findings) {
+    return (findings || []).map((f) => {
+      const loc = f.file ? `<span class="loc">${esc(f.file)}${f.line != null ? ":" + f.line : ""}</span>: ` : "";
+      return `<div class="finding">· ${loc}${esc(f.message)}</div>`;
+    }).join("");
+  }
+
+  function renderEvidence() {
+    const rows = (state.evidence || []);
+    $("evidence").innerHTML = rows.length ? rows.map((r) => `
+      <div class="row">
+        <div class="head">
+          <span class="tag ${esc(r.action)}">${esc(r.action)}</span>
+          <span class="rule">${esc(r.rule_id)}</span>
+          <span class="muted">${esc((r.actor && r.actor.type) || "")}:${esc((r.actor && r.actor.id) || "")}</span>
+          ${r.confidence != null ? `<span class="tag">conf ${esc(r.confidence)}</span>` : ""}
+          <span class="spacer"></span>
+          <span class="muted">${esc(r.id)}</span>
+        </div>
+        <div class="muted">change=${esc(r.change)}</div>
+        ${findingsHtml(r.findings)}
+      </div>`).join("") : `<div class="empty">No evidence yet. Run a scan (llm-review / check) to populate the ledger.</div>`;
+  }
+
+  function renderAdjudicate() {
+    const rows = (state.pending || []);
+    $("pcount").textContent = rows.length || "";
+    $("adjudicate").innerHTML = rows.length ? rows.map((r) => `
+      <div class="row" data-id="${esc(r.id)}">
+        <div class="head">
+          <span class="tag emit">${esc(r.kind)}</span>
+          ${r.confidence != null ? `<span class="tag">conf ${esc(r.confidence)}</span>` : ""}
+          <span class="spacer"></span>
+          <span class="muted">${esc(r.id)}</span>
+        </div>
+        ${findingsHtml(r.findings)}
+        ${r.note ? `<div class="muted">${esc(r.note)}</div>` : ""}
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button class="act confirm" data-id="${esc(r.id)}" data-outcome="confirmed">Confirm (real)</button>
+          <button class="act dismiss" data-id="${esc(r.id)}" data-outcome="dismissed">Dismiss (false positive)</button>
+        </div>
+      </div>`).join("") : `<div class="empty">No pending findings. Reasoned findings recorded via <code>record-finding</code> / the reviewer agent appear here.</div>`;
+
+    $("adjudicate").querySelectorAll("button.act").forEach((b) =>
+      b.addEventListener("click", () => adjudicate(b.dataset.id, b.dataset.outcome)));
+  }
+
+  function renderMatrix() {
+    const m = state.matrix || {};
+    if (!m.available) {
+      $("matrix").innerHTML = `<div class="empty">Matrix unavailable${m.hint ? " — " + esc(m.hint) : ""}.</div>`;
+      return;
+    }
+    const rows = m.rows || [];
+    $("matrix").innerHTML = `<table><thead><tr>
+        <th>#</th><th>Requirement</th><th>Regulation</th><th>Article(s)</th><th>Gate</th><th>Status</th><th>Evidence</th>
+      </tr></thead><tbody>${rows.map((r) => {
+        const st = String(r.status || "").toLowerCase();
+        return `<tr>
+          <td>${esc(r.rank ?? "")}</td>
+          <td>${esc(r.requirement || "")}</td>
+          <td>${esc(r.regulation || "")}</td>
+          <td>${esc((r.articles || []).join ? (r.articles || []).join(", ") : r.articles || "")}</td>
+          <td class="rule">${esc(r.gate || "")}</td>
+          <td class="status-${esc(st.replace(/\\s+/g, "-"))}">${esc(r.status || "")}</td>
+          <td>${esc(r.evidence_count ?? "")}</td>
+        </tr>`;
+      }).join("")}</tbody></table>`;
+  }
+
+  function renderGhosts() {
+    const g = state.ghosts || {};
+    const lines = g.lines || [];
+    $("ghosts").innerHTML = lines.length
+      ? lines.map((l) => `<div class="row"><span class="err">👻</span> ${esc(l)}</div>`).join("")
+      : `<div class="empty">${g.available === false ? "Ghost scan unavailable (CLI not found)." : "No ghost decisions — every consequential decision has a named owner."}</div>`;
+  }
+
+  function renderIntegrity() {
+    const it = state.integrity || {};
+    const el = $("integrity");
+    if (it.available === false) { el.className = "badge muted"; el.textContent = "ledger (cli n/a)"; return; }
+    el.className = "badge " + (it.ok ? "ok" : "bad");
+    el.textContent = it.ok ? `✓ ledger intact (${state.ledgerSize})` : "✗ ledger tampered";
+  }
+
+  function renderCounts() {
+    const c = state.counts || {};
+    $("counts").innerHTML = ["block", "allow", "emit", "override"]
+      .map((k) => `<span>${k} <b>${c[k] || 0}</b></span>`).join("");
+  }
+
+  function render() {
+    if (!state) return;
+    renderIntegrity(); renderCounts(); renderEvidence(); renderAdjudicate(); renderMatrix(); renderGhosts();
+  }
+
+  async function adjudicate(finding_id, outcome) {
+    const human = ($("reviewer").value || "").trim() || "canvas-reviewer";
+    try {
+      const res = await fetch("/api/adjudicate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ finding_id, outcome, human, signature: "canvas" }),
+      });
+      const data = await res.json();
+      if (data.state) { state = data.state; render(); }
+      else if (data.error) alert("Adjudication failed: " + data.error);
+    } catch (e) { alert("Adjudication failed: " + e.message); }
+  }
+
+  // Live updates via SSE, with a fetch fallback.
+  try {
+    const ev = new EventSource("/events");
+    ev.addEventListener("state", (e) => { state = JSON.parse(e.data); render(); });
+  } catch {
+    fetch("/api/dashboard").then((r) => r.json()).then((d) => { state = d; render(); });
+  }
+</script>
+</body>
+</html>
