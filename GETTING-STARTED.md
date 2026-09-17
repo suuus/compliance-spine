@@ -96,15 +96,16 @@ app's own web deps, so for an app you're governing, consider installing the spin
 **dedicated venv** (or via `pipx`) rather than the app's runtime environment.
 
 ## Install everything in the GitHub Copilot app (plugin)
-`plugin.json` (at the repo root) bundles the **callable agents + the compliance skill + the
-Compliance Dashboard canvas** as one plugin, so installing it once makes your agents and the panel
-available whenever you open a repo that has adopted the spine.
+`plugin.json` (repo root) bundles the **callable agents + the compliance skill + the Compliance
+Dashboard canvas** as one plugin, and `.github/plugin/marketplace.json` publishes it in a
+marketplace named **`suuus`**. Add the marketplace once, then install by name:
 
 ```bash
-copilot plugin install suuus/compliance-spine     # CLI; or in the app: Customize → Plugins
+copilot plugin marketplace add suuus/compliance-spine   # register the "suuus" marketplace (once)
+copilot plugin install compliance-spine@suuus           # install agents + skill + canvas
 ```
-In the GitHub Copilot **app**, open **Customize → Plugins** (add the repo / a custom marketplace),
-or install the canvas alone by pasting the folder URL
+In the GitHub Copilot **app**, open **Customize → Plugins**, add the marketplace (or a custom one),
+and install *compliance-spine*. You can also install just the canvas by pasting the folder URL
 `https://github.com/suuus/compliance-spine/tree/main/.github/extensions/compliance-dashboard`.
 Then invoke agents with `/agent compliance-spine` and open the panel with *"Open the Compliance
 Dashboard canvas"*. (MCP servers and skills declared in the repo also auto-load in the app.)
