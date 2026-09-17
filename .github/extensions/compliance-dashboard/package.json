@@ -1,6 +1,6 @@
 {
   "name": "compliance-dashboard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "main": "extension.mjs",
   "description": "Compliance-spine dashboard canvas — evidence feed, adjudication queue, compliance matrix, and ghost decisions (GDPR + EU AI Act) in the GitHub Copilot app side panel.",

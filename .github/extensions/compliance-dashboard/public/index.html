@@ -161,7 +161,8 @@
   function renderMatrix() {
     const m = state.matrix || {};
     if (!m.available) {
-      $("matrix").innerHTML = `<div class="empty">Matrix unavailable${m.hint ? " — " + esc(m.hint) : ""}.</div>`;
+      const cliMissing = /not found/i.test(m.hint || "");
+      $("matrix").innerHTML = `<div class="empty">${cliMissing ? cliHint("The compliance matrix") : "Matrix unavailable" + (m.hint ? " — " + esc(m.hint) : "") + "."}</div>`;
       return;
     }
     const rows = m.rows || [];
@@ -186,7 +187,7 @@
     const lines = g.lines || [];
     $("ghosts").innerHTML = lines.length
       ? lines.map((l) => `<div class="row"><span class="err">👻</span> ${esc(l)}</div>`).join("")
-      : `<div class="empty">${g.available === false ? "Ghost scan unavailable (CLI not found)." : "No ghost decisions — every consequential decision has a named owner."}</div>`;
+      : `<div class="empty">${g.available === false ? cliHint("Ghost scan") : "No ghost decisions — every consequential decision has a named owner."}</div>`;
   }
 
   function renderIntegrity() {
@@ -206,10 +207,21 @@
   function renderEnv() {
     const e = (state && state.env) || {};
     const el = $("env");
-    const cli = e.binResolved ? '<span class="ok">✓ cli</span>' : '<span class="bad">⚠ cli on PATH?</span>';
+    const cli = e.binResolved ? '<span class="ok">✓ cli</span>' : '<span class="bad">⚠ cli not found</span>';
     const led = e.ledgerFound ? '<span class="ok">✓ ledger</span>' : '<span class="bad">⚠ no ledger</span>';
-    el.innerHTML = `${cli} · ${led} · <span title="${esc(e.root)}">${esc(shortPath(e.root))}</span>`;
-    el.title = `cli: ${e.bin || "?"}\nledger: ${e.ledgerPath || "?"}`;
+    el.innerHTML = `<span class="muted">v${esc(e.extVersion || "?")}</span> · ${cli} · ${led} · ` +
+      `<span title="${esc(e.root)}">${esc(shortPath(e.root))}</span>`;
+    el.title = `extension v${e.extVersion || "?"}\ncli: ${e.bin || "?"}\nledger: ${e.ledgerPath || "?"}`;
+  }
+
+  function cliHint(what) {
+    const e = (state && state.env) || {};
+    const guess = (e.root || "&lt;repo&gt;") + "/.venv/bin/compliance-spine";
+    return `${esc(what)} needs the <code>compliance-spine</code> CLI, which wasn't found.<br>` +
+      `resolved: <code>${esc(e.bin || "?")}</code><br>` +
+      `Fix: set <code>COMPLIANCE_SPINE_BIN</code> to the absolute binary ` +
+      `(e.g. <code>${esc(guess)}</code>), or <code>pipx install "compliance-spine[mcp]"</code>, ` +
+      `then reopen the panel.`;
   }
   function shortPath(p) {
     if (!p) return "?";

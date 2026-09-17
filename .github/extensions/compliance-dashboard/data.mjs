@@ -5,6 +5,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const _HERE = path.dirname(fileURLToPath(import.meta.url));
+export const EXT_VERSION = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(_HERE, "package.json"), "utf8")).version || "?";
+  } catch {
+    return "?";
+  }
+})();
 
 let workspaceCwd = null;
 
@@ -32,26 +42,39 @@ export function repoRoot() {
 }
 
 // The Copilot app launches the extension without the user's venv on PATH, so a bare
-// `compliance-spine` fails with ENOENT. Resolve the real binary: an explicit override, then the
-// project's venv (the adopter convention), then pipx, then PATH.
-export function resolveSpineBin(root = repoRoot()) {
+// `compliance-spine` fails with ENOENT. Resolve the real binary from a broad set of candidates:
+// an explicit override, an active venv, venvs at/above the repo root, pipx, then every PATH dir.
+export function spineBinCandidates(root = repoRoot()) {
   const win = process.platform === "win32";
-  const bin = win ? "compliance-spine.exe" : "compliance-spine";
-  const venvBin = (dir) => path.join(dir, win ? "Scripts" : "bin", bin);
-  const candidates = [
-    process.env.COMPLIANCE_SPINE_BIN,
-    venvBin(path.join(root, ".venv")),
-    venvBin(path.join(root, ".spine-venv")),
-    path.join(os.homedir(), ".local", "bin", bin), // pipx / user install
-  ].filter(Boolean);
-  for (const c of candidates) {
+  const exe = win ? "compliance-spine.exe" : "compliance-spine";
+  const sub = win ? "Scripts" : "bin";
+  const out = [];
+  if (process.env.COMPLIANCE_SPINE_BIN) out.push(process.env.COMPLIANCE_SPINE_BIN);
+  if (process.env.VIRTUAL_ENV) out.push(path.join(process.env.VIRTUAL_ENV, sub, exe));
+  // .venv / .spine-venv / venv at the root and each parent (monorepo / nested checkout)
+  let dir = root;
+  for (let i = 0; i < 6 && dir; i++) {
+    for (const v of [".venv", ".spine-venv", "venv"]) out.push(path.join(dir, v, sub, exe));
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  out.push(path.join(os.homedir(), ".local", "bin", exe)); // pipx / user install
+  for (const d of (process.env.PATH || "").split(path.delimiter)) {
+    if (d) out.push(path.join(d, exe));
+  }
+  return out;
+}
+
+export function resolveSpineBin(root = repoRoot()) {
+  for (const c of spineBinCandidates(root)) {
     try {
-      if (fs.existsSync(c)) return c;
+      if (c && fs.existsSync(c)) return c;
     } catch {
       // ignore and try the next candidate
     }
   }
-  return "compliance-spine"; // last resort: rely on PATH
+  return "compliance-spine"; // last resort: rely on PATH at spawn time
 }
 
 // Run the resolved compliance-spine CLI at the repo root, pinning COMPLIANCE_SPINE_ROOT (needed
@@ -147,6 +170,7 @@ export function environmentInfo() {
   const bin = resolveSpineBin(root);
   const lp = ledgerPath();
   return {
+    extVersion: EXT_VERSION,
     root,
     bin,
     binResolved: bin !== "compliance-spine",

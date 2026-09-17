@@ -1,5 +1,6 @@
 // SDK-free tests for the dashboard data layer. Run: `node test.mjs` (no Copilot app needed).
 import assert from "node:assert/strict";
+import path from "node:path";
 import * as d from "./data.mjs";
 
 const LEDGER = [
@@ -63,8 +64,14 @@ assert.ok(d.runAction("verify", okRun).output.startsWith("[OK] verify"));
 assert.throws(() => d.runAction("rm -rf /", okRun), /unknown action/);
 assert.equal(d.runAction("verify", () => ({ ok: false, missing: true, stdout: "", stderr: "" })).missing, true);
 
-// binary resolution prefers a repo venv over bare PATH
-const bin = d.resolveSpineBin("/definitely/not/a/real/repo/xyz");
-assert.equal(bin, "compliance-spine", "falls back to PATH when no venv/override present");
+// binary resolution: candidates include venvs at/above the root, pipx, and every PATH dir
+const cands = d.spineBinCandidates("/repo/sub");
+const venvSuffix = path.join(".venv", "bin", "compliance-spine");
+assert.ok(cands.some((c) => c.endsWith(venvSuffix)), "includes a .venv/bin candidate");
+assert.ok(cands.some((c) => c.includes(`${path.sep}repo${path.sep}`)), "walks up from the root");
+assert.ok(cands.length > 3, "searches multiple locations");
+
+// the extension version is read from package.json (surfaced in the panel so a stale build shows)
+assert.match(d.EXT_VERSION, /^\d+\.\d+\.\d+$/);
 
 console.log("compliance-dashboard data layer: all assertions passed");
